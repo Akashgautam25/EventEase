@@ -101,16 +101,15 @@ EventEase/
     │   ├── App.jsx
     │   └── main.jsx
     └── package.json
+
+
+
 📝 Contributing
+
 Fork the repository
-
 Create a feature branch (git checkout -b feature/AmazingFeature)
-
 Commit your changes (git commit -m 'Add AmazingFeature')
-
 Push the branch (git push origin feature/AmazingFeature)
-
 Open a Pull Request
-
 pgsql
 Copy code
