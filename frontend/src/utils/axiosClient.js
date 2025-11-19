@@ -1,7 +1,6 @@
 import axios from "axios";
 
-// Replace this with your deployed backend URL
-const BASE_URL = process.env.REACT_APP_API_URL || "https://your-backend-domain.com/api";
+const BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
 const axiosClient = axios.create({
   baseURL: BASE_URL,

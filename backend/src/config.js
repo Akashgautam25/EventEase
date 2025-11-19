@@ -1,8 +1,5 @@
 require('dotenv').config();
 
-// Frontend URL
-const FRONTEND_URL = process.env.FRONTEND_URL || 'https://event-ease-amber.vercel.app';
-
 // Server Port
 const PORT = process.env.PORT ? Number(process.env.PORT) : 5001;
 
@@ -18,7 +15,6 @@ const isGoogleAuthEnabled =
   Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
 
 module.exports = {
-  FRONTEND_URL,
   PORT,
   JWT_SECRET,
   isGoogleAuthEnabled,

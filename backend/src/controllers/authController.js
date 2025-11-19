@@ -1,11 +1,37 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const prisma = require("../prisma/client");
-const { FRONTEND_URL, JWT_SECRET } = require("../config");
+const { JWT_SECRET } = require("../config");
+
+const COOKIE_NAME = "token";
+const COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
+const isProduction = process.env.NODE_ENV === "production";
 
 // Generate JWT token
-const generateToken = (userId) => {
-  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: "7d" });
+const generateToken = (userId) => jwt.sign({ userId }, JWT_SECRET, { expiresIn: "7d" });
+
+const isLocalhostOrigin = (origin = "") => /^(https?:\/\/)?(localhost|127\.0\.0\.1)/i.test(origin);
+const isHttpsOrigin = (origin = "") => origin.startsWith("https://");
+
+const baseCookieOptions = (origin) => {
+  const isLocal = isLocalhostOrigin(origin);
+  const secure = isHttpsOrigin(origin) || (!isLocal && isProduction);
+
+  return {
+    httpOnly: true,
+    secure,
+    sameSite: secure ? "none" : "lax",
+    path: "/",
+  };
+};
+
+const authCookieOptions = (origin) => ({
+  ...baseCookieOptions(origin),
+  maxAge: COOKIE_MAX_AGE,
+});
+
+const setAuthCookie = (res, token, origin) => {
+  res.cookie(COOKIE_NAME, token, authCookieOptions(origin));
 };
 
 // ---------- SIGN UP ----------
@@ -38,14 +64,7 @@ const signup = async (req, res) => {
     });
 
     const token = generateToken(user.id);
-
-    // Set cookie
-    res.cookie("token", token, {
-      httpOnly: true,
-      sameSite: "none",
-      secure: false, // true only when using HTTPS
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    setAuthCookie(res, token, req.requestOrigin);
 
     res.status(201).json({ user });
   } catch (error) {
@@ -69,13 +88,7 @@ const login = async (req, res) => {
     if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
     const token = generateToken(user.id);
-
-    res.cookie("token", token, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    setAuthCookie(res, token, req.requestOrigin);
 
     res.json({
       user: { id: user.id, name: user.name, email: user.email, provider: user.provider },
@@ -89,16 +102,11 @@ const login = async (req, res) => {
 // ---------- GET ME ----------
 const getMe = async (req, res) => {
   try {
-    const userId = req.user?.userId;
+    if (!req.user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
 
-    if (!userId) return res.status(401).json({ message: "Unauthorized" });
-
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true, name: true, email: true, provider: true },
-    });
-
-    res.json({ user });
+    res.json({ user: req.user });
   } catch (error) {
     console.error("GetMe Error:", error);
     res.status(500).json({ message: "Server error" });
@@ -107,7 +115,7 @@ const getMe = async (req, res) => {
 
 // ---------- LOGOUT ----------
 const logout = (req, res) => {
-  res.clearCookie("token");
+  res.clearCookie(COOKIE_NAME, baseCookieOptions(req.requestOrigin));
   res.json({ message: "Logged out successfully" });
 };
 

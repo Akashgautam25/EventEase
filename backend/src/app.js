@@ -4,32 +4,30 @@ const cookieParser = require("cookie-parser");
 const passport = require("passport");
 const authRoutes = require("./routes/authRoutes");
 
-const { FRONTEND_URL } = require("./config");
-
 const app = express();
 
-// Allowed origins (local + deployed)
-const allowedOrigins = [
-  "http://localhost:5173",           // dev
-  "https://event-ease-amber.vercel.app" // deployed frontend
-];
+// Track origin per request so responses reflect the caller
+app.use((req, res, next) => {
+  req.requestOrigin = req.headers.origin || null;
+  res.header("Vary", "Origin");
+  next();
+});
 
-// CORS setup for cookies + Axios withCredentials
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // allow requests with no origin (like mobile apps or curl)
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl) by returning true
+    callback(null, origin || true);
+  },
+  credentials: true, // required for cookies
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+// CORS setup to dynamically mirror any requesting origin for cookies
+app.use(cors(corsOptions));
+
+// Handle preflight for any route
+app.options("*", cors(corsOptions));
 
 app.use(express.json());
 app.use(cookieParser());
