@@ -7,7 +7,6 @@ import axiosClient from '../utils/axiosClient';
 const Login = ({ setUser }) => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
@@ -17,7 +16,6 @@ const Login = ({ setUser }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
 
     try {
@@ -30,8 +28,6 @@ const Login = ({ setUser }) => {
       navigate('/dashboard');
     } catch (error) {
       setError(error.response?.data?.message || 'Login failed');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -46,9 +42,7 @@ const Login = ({ setUser }) => {
       <div className="w-full max-w-md">
         <div className="bg-white p-8 rounded-xl border border-gray-300 shadow-sm">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-black mb-2">
-              Welcome Back
-            </h2>
+            <h2 className="text-3xl font-bold text-black mb-2">Welcome Back</h2>
             <p className="text-gray-600">Sign in to your account</p>
           </div>
           
@@ -92,39 +86,12 @@ const Login = ({ setUser }) => {
               </button>
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 text-black focus:ring-black border-gray-300 rounded"
-                />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-600">
-                  Remember me
-                </label>
-              </div>
-              <button type="button" className="text-sm text-black hover:underline">
-                Forgot password?
-              </button>
-            </div>
-
             <button
               type="submit"
-              disabled={loading}
-              className="w-full bg-black text-white py-3 px-4 rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 disabled:opacity-50 transition-colors"
+              className="w-full bg-black text-white py-3 px-4 rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              Sign In
             </button>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-gray-500">Or</span>
-              </div>
-            </div>
 
             <button
               type="button"

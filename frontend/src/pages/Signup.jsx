@@ -7,7 +7,7 @@ import axiosClient from '../utils/axiosClient';
 const Signup = ({ setUser }) => {
   const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' });
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
@@ -18,12 +18,10 @@ const Signup = ({ setUser }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
 
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
-      setLoading(false);
       return;
     }
 
@@ -38,8 +36,6 @@ const Signup = ({ setUser }) => {
       navigate('/dashboard');
     } catch (error) {
       setError(error.response?.data?.message || 'Signup failed');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -135,10 +131,10 @@ const Signup = ({ setUser }) => {
 
             <button
               type="submit"
-              disabled={loading}
-              className="w-full bg-black text-white py-3 px-4 rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 disabled:opacity-50 transition-colors"
+
+              className="w-full bg-black text-white py-3 px-4 rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
             >
-              {loading ? 'Creating account...' : 'Create Account'}
+              Create Account
             </button>
 
             <div className="relative">
