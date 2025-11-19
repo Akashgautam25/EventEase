@@ -59,8 +59,8 @@ EventEase is a full-stack platform for managing college events. Students can bro
 
 ### Installation
 
-
-Backend
+#### Backend
+```bash
 cd backend
 npm install
 cp .env.example .env
@@ -71,13 +71,16 @@ npm run dev
 Backend → http://localhost:5000
 
 Frontend
+bash
+Copy code
 cd frontend
 npm install
 npm run dev
 Frontend → http://localhost:5173
 
-
 📁 Project Structure
+graphql
+Copy code
 EventEase/
 ├── backend/
 │   ├── src/
@@ -98,9 +101,7 @@ EventEase/
     │   ├── App.jsx
     │   └── main.jsx
     └── package.json
-
 📝 Contributing
-
 Fork the repository
 
 Create a feature branch (git checkout -b feature/AmazingFeature)
@@ -111,3 +112,5 @@ Push the branch (git push origin feature/AmazingFeature)
 
 Open a Pull Request
 
+pgsql
+Copy code
