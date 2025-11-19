@@ -60,7 +60,6 @@ EventEase is a full-stack platform for managing college events. Students can bro
 ### Installation
 
 #### Backend
-```bash
 cd backend
 npm install
 cp .env.example .env
@@ -68,19 +67,18 @@ cp .env.example .env
 npx prisma generate
 npx prisma db push
 npm run dev
-Backend → http://localhost:5000
+# Backend → http://localhost:5000
 
-Frontend
-bash
-Copy code
+#### Frontend
 cd frontend
 npm install
 npm run dev
-Frontend → http://localhost:5173
+# Frontend → http://localhost:5173
 
-📁 Project Structure
-graphql
-Copy code
+---
+
+### 📁 Project Structure
+
 EventEase/
 ├── backend/
 │   ├── src/
@@ -102,14 +100,13 @@ EventEase/
     │   └── main.jsx
     └── package.json
 
+---
 
+### 📝 Contributing
 
-📝 Contributing
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add AmazingFeature'`)
+4. Push the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-Fork the repository
-Create a feature branch (git checkout -b feature/AmazingFeature)
-Commit your changes (git commit -m 'Add AmazingFeature')
-Push the branch (git push origin feature/AmazingFeature)
-Open a Pull Request
-pgsql
-Copy code
