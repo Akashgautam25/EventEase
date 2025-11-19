@@ -3,15 +3,29 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const passport = require("passport");
 const authRoutes = require("./routes/authRoutes");
+
 const { FRONTEND_URL } = require("./config");
 
 const app = express();
 
-// CORS FIXED FOR COOKIES + AXIOS withCredentials
+// Allowed origins (local + deployed)
+const allowedOrigins = [
+  "http://localhost:5173",           // dev
+  "https://event-ease-amber.vercel.app" // deployed frontend
+];
+
+// CORS setup for cookies + Axios withCredentials
 app.use(
   cors({
-    origin: FRONTEND_URL, // NOT '*'
-    credentials: true,    // MUST be true for cookies
+    origin: function (origin, callback) {
+      // allow requests with no origin (like mobile apps or curl)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
@@ -29,7 +43,7 @@ app.get("/", (req, res) => {
 // Auth routes
 app.use("/api/auth", authRoutes);
 
-// 404
+// 404 handler
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
