@@ -1,7 +1,7 @@
 require('dotenv').config();
 
 // Frontend URL
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://event-ease-amber.vercel.app';
 
 // Server Port
 const PORT = process.env.PORT ? Number(process.env.PORT) : 5001;
