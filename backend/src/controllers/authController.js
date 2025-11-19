@@ -66,7 +66,7 @@ const signup = async (req, res) => {
     const token = generateToken(user.id);
     setAuthCookie(res, token, req.requestOrigin);
 
-    res.status(201).json({ user });
+    res.status(201).json({ user, token });
   } catch (error) {
     console.error("Signup Error:", error);
     res.status(500).json({ message: "Server error" });
@@ -92,6 +92,7 @@ const login = async (req, res) => {
 
     res.json({
       user: { id: user.id, name: user.name, email: user.email, provider: user.provider },
+      token,
     });
   } catch (error) {
     console.error("Login Error:", error);

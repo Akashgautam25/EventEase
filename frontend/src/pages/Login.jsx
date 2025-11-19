@@ -22,7 +22,11 @@ const Login = ({ setUser }) => {
 
     try {
       const response = await axiosClient.post('/auth/login', formData);
-      setUser(response.data.user);
+      const { user, token } = response.data;
+      if (token) {
+        localStorage.setItem('token', token);
+      }
+      setUser(user);
       navigate('/dashboard');
     } catch (error) {
       setError(error.response?.data?.message || 'Login failed');

@@ -8,6 +8,7 @@ const Navbar = ({ user, setUser }) => {
   const handleLogout = async () => {
     try {
       await axiosClient.post('/auth/logout');
+      localStorage.removeItem('token');
       setUser(null);
       navigate('/');
     } catch (error) {

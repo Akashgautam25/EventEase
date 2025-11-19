@@ -30,7 +30,11 @@ const Signup = ({ setUser }) => {
     try {
       const { confirmPassword, ...submitData } = formData;
       const response = await axiosClient.post('/auth/signup', submitData);
-      setUser(response.data.user);
+      const { user, token } = response.data;
+      if (token) {
+        localStorage.setItem('token', token);
+      }
+      setUser(user);
       navigate('/dashboard');
     } catch (error) {
       setError(error.response?.data?.message || 'Signup failed');
