@@ -15,13 +15,14 @@ const isHttpsOrigin = (origin = "") => origin.startsWith("https://");
 
 const baseCookieOptions = (origin) => {
   const isLocal = isLocalhostOrigin(origin);
-  const secure = isHttpsOrigin(origin) || (!isLocal && isProduction);
+  const secure = isHttpsOrigin(origin) || isProduction;
 
   return {
     httpOnly: true,
     secure,
     sameSite: secure ? "none" : "lax",
     path: "/",
+    domain: isLocal ? undefined : undefined, // Let browser handle domain
   };
 };
 
@@ -68,8 +69,11 @@ const signup = async (req, res) => {
 
     res.status(201).json({ user, token });
   } catch (error) {
-    console.error("Signup Error:", error);
-    res.status(500).json({ message: "Server error" });
+    console.error("Signup Error:", error.message);
+    res.status(500).json({ 
+      message: "Server error",
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 

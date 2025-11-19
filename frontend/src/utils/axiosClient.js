@@ -1,6 +1,8 @@
 import axios from "axios";
 
-const BASE_URL = import.meta.env.VITE_API_URL || "/api";
+const BASE_URL = import.meta.env.VITE_API_URL || "https://eventease-03az.onrender.com/api";
+
+console.log('API Base URL:', BASE_URL);
 
 const axiosClient = axios.create({
   baseURL: BASE_URL,

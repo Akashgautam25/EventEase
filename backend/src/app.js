@@ -14,20 +14,24 @@ app.use((req, res, next) => {
 });
 
 const corsOptions = {
-  origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl) by returning true
-    callback(null, origin || true);
-  },
-  credentials: true, // required for cookies
+  origin: true,
+  credentials: true,
+  optionsSuccessStatus: 200,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
 };
 
-// CORS setup to dynamically mirror any requesting origin for cookies
+// CORS setup
 app.use(cors(corsOptions));
 
 // Handle preflight for any route
 app.options("*", cors(corsOptions));
+
+// Additional CORS headers
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Credentials', 'true');
+  next();
+});
 
 app.use(express.json());
 app.use(cookieParser());
