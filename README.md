@@ -68,3 +68,44 @@ cp .env.example .env
 npx prisma generate
 npx prisma db push
 npm run dev
+Backend → http://localhost:5000
+
+Frontend
+cd frontend
+npm install
+npm run dev
+Frontend → http://localhost:5173
+
+📁 Project Structure
+EventEase/
+├── backend/
+│   ├── src/
+│   │   ├── controllers/       # Business logic
+│   │   ├── middleware/        # Auth & validation
+│   │   ├── prisma/             # Prisma client
+│   │   ├── routes/             # API routes
+│   │   ├── app.js
+│   │   └── index.js
+│   ├── prisma/
+│   │   └── schema.prisma
+│   └── package.json
+└── frontend/
+    ├── src/
+    │   ├── components/        # Navbar, ProtectedRoute, etc.
+    │   ├── pages/             # Dashboard, Login, Signup, Landing
+    │   ├── utils/             # Axios client, helpers
+    │   ├── App.jsx
+    │   └── main.jsx
+    └── package.json
+
+📝 Contributing
+
+Fork the repository
+
+Create a feature branch (git checkout -b feature/AmazingFeature)
+
+Commit your changes (git commit -m 'Add AmazingFeature')
+
+Push the branch (git push origin feature/AmazingFeature)
+
+Open a Pull Request
