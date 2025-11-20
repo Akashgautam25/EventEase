@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 import Landing from './pages/Landing';
@@ -12,8 +12,15 @@ function AppContent() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const location = useLocation();
+  const navigate = useNavigate();
   
   const hideNavbar = ['/login', '/signup'].includes(location.pathname);
+
+  useEffect(() => {
+    if (user && (location.pathname === '/login' || location.pathname === '/signup')) {
+      navigate('/');
+    }
+  }, [user, location.pathname, navigate]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -22,12 +29,20 @@ function AppContent() {
         setUser(response.data.user);
       } catch (error) {
         console.log('Not authenticated');
+        localStorage.removeItem('token');
+        setUser(null);
       } finally {
         setLoading(false);
       }
     };
 
-    checkAuth();
+    // Clear session on app start
+    localStorage.removeItem('token');
+    setUser(null);
+    setLoading(false);
+    
+    // Uncomment below to enable persistent login
+    // checkAuth();
   }, []);
 
   if (loading) {

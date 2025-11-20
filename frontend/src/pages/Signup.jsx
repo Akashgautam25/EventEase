@@ -7,7 +7,7 @@ import axiosClient from '../utils/axiosClient';
 const Signup = ({ setUser }) => {
   const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' });
   const [error, setError] = useState('');
-
+  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
@@ -18,31 +18,29 @@ const Signup = ({ setUser }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     setError('');
 
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
+      setLoading(false);
       return;
     }
 
     try {
       const { confirmPassword, ...submitData } = formData;
       const response = await axiosClient.post('/auth/signup', submitData);
-      const { user, token } = response.data;
-      if (token) {
-        localStorage.setItem('token', token);
-      }
-      setUser(user);
+      setUser(response.data.user);
       navigate('/dashboard');
     } catch (error) {
       setError(error.response?.data?.message || 'Signup failed');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleGoogleSignup = () => {
-    const apiUrl = import.meta.env.VITE_API_URL || '/api';
-    const baseUrl = apiUrl.replace('/api', '');
-    window.location.href = `${baseUrl}/api/auth/google`;
+    window.location.href = 'http://localhost:5001/api/auth/google';
   };
 
   return (
@@ -131,10 +129,10 @@ const Signup = ({ setUser }) => {
 
             <button
               type="submit"
-
-              className="w-full bg-black text-white py-3 px-4 rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
+              disabled={loading}
+              className="w-full bg-black text-white py-3 px-4 rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 disabled:opacity-50 transition-colors"
             >
-              Create Account
+              {loading ? 'Creating Account...' : 'Create Account'}
             </button>
 
             <div className="relative">
