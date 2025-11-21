@@ -1,12 +1,9 @@
 import axios from "axios";
 
-const BASE_URL = import.meta.env.VITE_API_URL || "https://eventease-03az.onrender.com/api";
-
-console.log('API Base URL:', BASE_URL);
-
 const axiosClient = axios.create({
-  baseURL: BASE_URL,
-  withCredentials: true, // ✅ Include cookies in requests
+  baseURL: 'http://localhost:5001/api',
+  withCredentials: true,
+  timeout: 5000,
   headers: {
     "Content-Type": "application/json",
   },
