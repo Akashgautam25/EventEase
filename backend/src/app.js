@@ -3,6 +3,9 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const passport = require("passport");
 const authRoutes = require("./routes/authRoutes");
+const eventRoutes = require("./routes/eventRoutes");
+const registrationRoutes = require("./routes/registrationRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 
 const app = express();
 
@@ -44,6 +47,15 @@ app.get("/", (req, res) => {
 
 // Auth routes
 app.use("/api/auth", authRoutes);
+
+// Event routes
+app.use("/api/events", eventRoutes);
+
+// Registration routes
+app.use("/api/registrations", registrationRoutes);
+
+// Admin routes
+app.use("/api/admin", adminRoutes);
 
 // 404 handler
 app.use((req, res) => {

@@ -13,9 +13,40 @@ generator client {
 
 // 3️⃣ Models
 model User {
-  id       Int     @id @default(autoincrement())
-  name     String
-  email    String  @unique
-  password String?
-  provider String
+  id            Int            @id @default(autoincrement())
+  name          String
+  email         String         @unique
+  password      String?
+  provider      String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  registrations Registration[]
+}
+
+model Event {
+  id            Int            @id @default(autoincrement())
+  title         String
+  description   String
+  category      String
+  date          DateTime
+  location      String
+  price         Float          @default(0)
+  totalSeats    Int
+  availableSeats Int
+  createdBy     Int
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  registrations Registration[]
+}
+
+model Registration {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  eventId     Int
+  ticketCount Int      @default(1)
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+  event       Event    @relation(fields: [eventId], references: [id])
+  
+  @@unique([userId, eventId])
 }

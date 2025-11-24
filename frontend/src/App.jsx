@@ -14,7 +14,7 @@ function AppContent() {
   const location = useLocation();
   const navigate = useNavigate();
   
-  const hideNavbar = ['/login', '/signup'].includes(location.pathname);
+  const hideNavbar = ['/login', '/signup', '/dashboard'].includes(location.pathname);
 
   useEffect(() => {
     if (user && (location.pathname === '/login' || location.pathname === '/signup')) {
@@ -25,24 +25,25 @@ function AppContent() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await axiosClient.get('/auth/me');
-        setUser(response.data.user);
+        const token = localStorage.getItem('token');
+        const userRole = localStorage.getItem('userRole');
+        
+        if (token) {
+          const response = await axiosClient.get('/auth/me');
+          const userData = { ...response.data.user, role: userRole };
+          setUser(userData);
+        }
       } catch (error) {
         console.log('Not authenticated');
         localStorage.removeItem('token');
+        localStorage.removeItem('userRole');
         setUser(null);
       } finally {
         setLoading(false);
       }
     };
 
-    // Clear session on app start
-    localStorage.removeItem('token');
-    setUser(null);
-    setLoading(false);
-    
-    // Uncomment below to enable persistent login
-    // checkAuth();
+    checkAuth();
   }, []);
 
   if (loading) {
@@ -64,7 +65,7 @@ function AppContent() {
           path="/dashboard" 
           element={
             <ProtectedRoute user={user}>
-              <Dashboard user={user} />
+              <Dashboard user={user} setUser={setUser} />
             </ProtectedRoute>
           } 
         />

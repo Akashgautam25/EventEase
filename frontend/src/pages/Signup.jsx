@@ -5,7 +5,7 @@ import { FcGoogle } from 'react-icons/fc';
 import axiosClient from '../utils/axiosClient';
 
 const Signup = ({ setUser }) => {
-  const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '', userType: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -30,7 +30,15 @@ const Signup = ({ setUser }) => {
     try {
       const { confirmPassword, ...submitData } = formData;
       const response = await axiosClient.post('/auth/signup', submitData);
-      setUser(response.data.user);
+      const userData = { ...response.data.user, role: formData.userType };
+      
+      // Store token and user data
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+      }
+      localStorage.setItem('userRole', formData.userType);
+      
+      setUser(userData);
       navigate('/dashboard');
     } catch (error) {
       setError(error.response?.data?.message || 'Signup failed');
@@ -126,6 +134,20 @@ const Signup = ({ setUser }) => {
                 {showConfirmPassword ? <HiEyeSlash className="w-5 h-5" /> : <HiEye className="w-5 h-5" />}
               </button>
             </div>
+            
+            <div>
+              <select
+                name="userType"
+                value={formData.userType}
+                onChange={handleChange}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                required
+              >
+                <option value="">Select User Type</option>
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
 
             <button
               type="submit"
@@ -134,15 +156,6 @@ const Signup = ({ setUser }) => {
             >
               {loading ? 'Creating Account...' : 'Create Account'}
             </button>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-gray-500">Or</span>
-              </div>
-            </div>
 
             <button
               type="button"

@@ -2,9 +2,17 @@ const jwt = require('jsonwebtoken');
 const prisma = require('../prisma/client');
 const { JWT_SECRET } = require('../config');
 
-const authMiddleware = async (req, res, next) => {
+const authenticateToken = async (req, res, next) => {
   try {
-    const token = req.cookies.token;
+    // Try to get token from Authorization header first, then from cookies
+    let token = req.cookies.token;
+    
+    if (!token) {
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7);
+      }
+    }
     
     if (!token) {
       return res.status(401).json({ message: 'Access denied. No token provided.' });
@@ -28,4 +36,4 @@ const authMiddleware = async (req, res, next) => {
   }
 };
 
-module.exports = authMiddleware;
+module.exports = { authenticateToken };

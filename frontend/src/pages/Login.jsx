@@ -5,7 +5,7 @@ import { FcGoogle } from 'react-icons/fc';
 import axiosClient from '../utils/axiosClient';
 
 const Login = ({ setUser }) => {
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [formData, setFormData] = useState({ email: '', password: '', userType: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -22,7 +22,15 @@ const Login = ({ setUser }) => {
 
     try {
       const response = await axiosClient.post('/auth/login', formData);
-      setUser(response.data.user);
+      const userData = { ...response.data.user, role: formData.userType };
+      
+      // Store token and user data
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+      }
+      localStorage.setItem('userRole', formData.userType);
+      
+      setUser(userData);
       navigate('/dashboard');
     } catch (error) {
       setError(error.response?.data?.message || 'Login failed');
@@ -82,6 +90,20 @@ const Login = ({ setUser }) => {
               >
                 {showPassword ? <HiEyeSlash className="w-5 h-5" /> : <HiEye className="w-5 h-5" />}
               </button>
+            </div>
+            
+            <div>
+              <select
+                name="userType"
+                value={formData.userType}
+                onChange={handleChange}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                required
+              >
+                <option value="">Select User Type</option>
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+              </select>
             </div>
 
             <button
