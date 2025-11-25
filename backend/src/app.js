@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const passport = require("passport");
+
 const authRoutes = require("./routes/authRoutes");
 const eventRoutes = require("./routes/eventRoutes");
 const registrationRoutes = require("./routes/registrationRoutes");
@@ -9,55 +10,68 @@ const adminRoutes = require("./routes/adminRoutes");
 
 const app = express();
 
-// Track origin per request so responses reflect the caller
+/* ----------------------------------------------
+   1. Capture Origin on Every Request
+---------------------------------------------- */
 app.use((req, res, next) => {
-  req.requestOrigin = req.headers.origin || null;
+  req.requestOrigin = req.headers.origin || null; 
   res.header("Vary", "Origin");
   next();
 });
 
+/* ----------------------------------------------
+   2. Dynamic CORS Options
+---------------------------------------------- */
 const corsOptions = {
-  origin: true,
-  credentials: true,
+  origin: true,               // Reflect request origin
+  credentials: true,          // Allow cookies/auth
   optionsSuccessStatus: 200,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
 };
 
-// CORS setup
+// Apply CORS
 app.use(cors(corsOptions));
 
-// Handle preflight for any route
+// Preflight for ALL routes
 app.options("*", cors(corsOptions));
 
-// Additional CORS headers
+/* ----------------------------------------------
+   3. FIXED: Send Dynamic Origin in Response
+---------------------------------------------- */
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Credentials', 'true');
+  if (req.requestOrigin) {
+    res.header("Access-Control-Allow-Origin", req.requestOrigin);
+  }
+  res.header("Access-Control-Allow-Credentials", "true");
   next();
 });
 
+/* ----------------------------------------------
+   4. Middlewares
+---------------------------------------------- */
 app.use(express.json());
 app.use(cookieParser());
 app.use(passport.initialize());
 
-// Health route
+/* ----------------------------------------------
+   5. Health Check Route
+---------------------------------------------- */
 app.get("/", (req, res) => {
   res.json({ message: "EventEase API running 🚀" });
 });
 
-// Auth routes
+/* ----------------------------------------------
+   6. All Routes
+---------------------------------------------- */
 app.use("/api/auth", authRoutes);
-
-// Event routes
 app.use("/api/events", eventRoutes);
-
-// Registration routes
 app.use("/api/registrations", registrationRoutes);
-
-// Admin routes
 app.use("/api/admin", adminRoutes);
 
-// 404 handler
+/* ----------------------------------------------
+   7. 404 Handler
+---------------------------------------------- */
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
 });

@@ -95,7 +95,7 @@ const login = async (req, res) => {
     setAuthCookie(res, token, req.requestOrigin);
 
     res.json({
-      user: { id: user.id, name: user.name, email: user.email, provider: user.provider },
+      user: { id: user.id, name: user.name, email: user.email, provider: user.provider, role: user.role },
       token,
     });
   } catch (error) {
