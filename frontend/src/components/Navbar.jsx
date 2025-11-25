@@ -19,40 +19,40 @@ const Navbar = ({ user, setUser }) => {
 
   return (
     <nav className="bg-white border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <Link to="/" className="text-2xl font-bold text-grey-800">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-14 sm:h-16">
+          <Link to="/" className="text-xl sm:text-2xl font-bold text-gray-800">
             EventEase
           </Link>
           
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             {user ? (
               <>
-                <span className="text-gray-600 text-sm">
+                <span className="hidden sm:block text-gray-600 text-sm truncate max-w-32">
                   {user.name || user.email}
                 </span>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center px-4 py-2 text-sm text-gray-600 hover:text-black transition-colors"
+                  className="flex items-center px-2 sm:px-4 py-2 text-xs sm:text-sm text-gray-600 hover:text-black transition-colors"
                 >
-                  <HiArrowRightOnRectangle className="w-4 h-4 mr-2" />
-                  Logout
+                  <HiArrowRightOnRectangle className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Logout</span>
                 </button>
               </>
             ) : (
               <>
                 <button
                   onClick={() => navigate('/login')}
-                  className="px-4 py-2 text-sm text-gray-600 hover:text-black transition-colors"
+                  className="px-2 sm:px-4 py-2 text-xs sm:text-sm text-gray-600 hover:text-black transition-colors"
                 >
                   Login
                 </button>
                 <button
                   onClick={() => navigate('/signup')}
-                  className="flex items-center px-4 py-2 bg-black text-white text-sm rounded-lg hover:bg-gray-800 transition-colors"
+                  className="flex items-center px-2 sm:px-4 py-2 bg-black text-white text-xs sm:text-sm rounded-lg hover:bg-gray-800 transition-colors"
                 >
-                  <HiUserPlus className="w-4 h-4 mr-2" />
-                  Sign Up
+                  <HiUserPlus className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Sign Up</span>
                 </button>
               </>
             )}
