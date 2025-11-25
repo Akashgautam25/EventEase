@@ -48,7 +48,7 @@ const Signup = ({ setUser }) => {
   };
 
   const handleGoogleSignup = () => {
-    window.location.href = 'http://localhost:5001/api/auth/google';
+    window.location.href = 'https://eventease-03az.onrender.com/api/auth/google';
   };
 
   return (

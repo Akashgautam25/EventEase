@@ -40,7 +40,7 @@ const Login = ({ setUser }) => {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = 'http://localhost:5001/api/auth/google';
+    window.location.href = 'https://eventease-03az.onrender.com/api/auth/google';
   };
 
   return (
