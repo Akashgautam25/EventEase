@@ -70,7 +70,15 @@ app.use("/api/registrations", registrationRoutes);
 app.use("/api/admin", adminRoutes);
 
 /* ----------------------------------------------
-   7. 404 Handler
+   7. Error Handler
+---------------------------------------------- */
+app.use((err, req, res, next) => {
+  console.error('Server Error:', err);
+  res.status(500).json({ message: "Internal server error" });
+});
+
+/* ----------------------------------------------
+   8. 404 Handler
 ---------------------------------------------- */
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });

@@ -3,8 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { HiEnvelope, HiLockClosed, HiEye, HiEyeSlash } from 'react-icons/hi2';
 import { FcGoogle } from 'react-icons/fc';
 import axiosClient from '../utils/axiosClient';
-import config from '../config/config';
-import { validateEmail, formatErrorMessage } from '../utils/validation';
 
 const Login = ({ setUser }) => {
   const [formData, setFormData] = useState({ email: '', password: '', userType: '' });
@@ -22,13 +20,6 @@ const Login = ({ setUser }) => {
     setLoading(true);
     setError('');
 
-    // Validation
-    if (!validateEmail(formData.email)) {
-      setError('Please enter a valid email address');
-      setLoading(false);
-      return;
-    }
-
     try {
       const response = await axiosClient.post('/auth/login', formData);
       const userData = { ...response.data.user, role: formData.userType };
@@ -42,14 +33,14 @@ const Login = ({ setUser }) => {
       setUser(userData);
       navigate('/dashboard');
     } catch (error) {
-      setError(formatErrorMessage(error) || 'Login failed');
+      setError(error.response?.data?.message || 'Login failed');
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = config.GOOGLE_AUTH_URL;
+    window.location.href = 'http://localhost:5001/api/auth/google';
   };
 
   return (

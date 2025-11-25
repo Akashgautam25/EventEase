@@ -37,43 +37,33 @@ const setAuthCookie = (res, token, origin) => {
 
 // ---------- SIGN UP ----------
 const signup = async (req, res) => {
+  const { name, email, password, userType } = req.body;
+  
   try {
-    const { name, email, password } = req.body;
-
-    if (!name || !email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
-
-    // Check existing user
-    const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
-    }
-
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 6);
-
-    // Create user
+    
     const user = await prisma.user.create({
       data: {
         name,
         email,
         password: hashedPassword,
-        provider: "credentials",
-      },
-      select: { id: true, name: true, email: true, provider: true },
+        provider: "credentials"
+      }
     });
-
+    
     const token = generateToken(user.id);
-    setAuthCookie(res, token, req.requestOrigin);
-
-    res.status(201).json({ user, token });
-  } catch (error) {
-    console.error("Signup Error:", error.message);
-    res.status(500).json({ 
-      message: "Server error",
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    
+    res.json({ 
+      user: { 
+        id: user.id, 
+        name: user.name, 
+        email: user.email 
+      }, 
+      token 
     });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error creating user" });
   }
 };
 

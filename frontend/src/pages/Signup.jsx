@@ -3,8 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { HiUser, HiEnvelope, HiLockClosed, HiEye, HiEyeSlash } from 'react-icons/hi2';
 import { FcGoogle } from 'react-icons/fc';
 import axiosClient from '../utils/axiosClient';
-import config from '../config/config';
-import { validateEmail, validatePassword, validateName, formatErrorMessage } from '../utils/validation';
 
 const Signup = ({ setUser }) => {
   const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '', userType: '' });
@@ -23,25 +21,6 @@ const Signup = ({ setUser }) => {
     setLoading(true);
     setError('');
 
-    // Validation
-    if (!validateName(formData.name)) {
-      setError('Name must be at least 2 characters long');
-      setLoading(false);
-      return;
-    }
-    
-    if (!validateEmail(formData.email)) {
-      setError('Please enter a valid email address');
-      setLoading(false);
-      return;
-    }
-    
-    if (!validatePassword(formData.password)) {
-      setError('Password must be at least 6 characters long');
-      setLoading(false);
-      return;
-    }
-    
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       setLoading(false);
@@ -62,14 +41,14 @@ const Signup = ({ setUser }) => {
       setUser(userData);
       navigate('/dashboard');
     } catch (error) {
-      setError(formatErrorMessage(error) || 'Signup failed');
+      setError(error.response?.data?.message || 'Signup failed');
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogleSignup = () => {
-    window.location.href = config.GOOGLE_AUTH_URL;
+    window.location.href = 'http://localhost:5001/api/auth/google';
   };
 
   return (
