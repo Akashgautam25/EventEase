@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const axiosClient = axios.create({
-  baseURL: 'http://localhost:5001/api',
+  baseURL: 'https://eventease-03az.onrender.com/api',
   withCredentials: true,
   timeout: 5000,
   headers: {
