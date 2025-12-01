@@ -1,4 +1,5 @@
-const prisma = require('../prisma/client');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
 const getStats = async (req, res) => {
   try {
@@ -34,7 +35,7 @@ const getStats = async (req, res) => {
 const getAllEvents = async (req, res) => {
   try {
     const events = await prisma.event.findMany({
-      orderBy: { createdAt: 'desc' },
+      orderBy: { id: 'desc' },
       include: {
         registrations: true
       }
@@ -50,14 +51,13 @@ const getAllEvents = async (req, res) => {
 const getAllUsers = async (req, res) => {
   try {
     const users = await prisma.user.findMany({
-      orderBy: { createdAt: 'desc' },
+      orderBy: { id: 'desc' },
       select: {
         id: true,
         name: true,
         email: true,
         role: true,
-        provider: true,
-        createdAt: true
+        provider: true
       }
     });
 
