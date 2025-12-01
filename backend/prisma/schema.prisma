@@ -33,7 +33,6 @@ model Event {
   totalSeats    Int
   availableSeats Int
   createdBy     Int
-  updatedAt: new Date()
   registrations Registration[]
 }
 
