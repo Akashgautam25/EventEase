@@ -7,9 +7,9 @@ const createEvent = async (req, res) => {
       return res.status(403).json({ message: 'Admin access required' });
     }
     
-    const { title, description, date, location, price, totalSeats, category } = req.body;
+    const { title, description, date, time, location, price, totalSeats, category } = req.body;
     
-    if (!title || !description || !date || !location || !category || !totalSeats) {
+    if (!title || !description || !date || !time || !location || !category || !totalSeats) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
     
@@ -18,6 +18,7 @@ const createEvent = async (req, res) => {
         title,
         description,
         date: new Date(date),
+        time: new Date(time),
         location,
         price: parseFloat(price) || 0,
         totalSeats: parseInt(totalSeats),
@@ -170,7 +171,7 @@ const getEventById = async (req, res) => {
 const updateEvent = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, date, location, price, totalSeats, category } = req.body;
+    const { title, description, date, time, location, price, totalSeats, category } = req.body;
 
     const event = await prisma.event.update({
       where: { id: parseInt(id) },
@@ -178,6 +179,7 @@ const updateEvent = async (req, res) => {
         title,
         description,
         date: new Date(date),
+        time: new Date(time),
         location,
         price: parseFloat(price),
         totalSeats: parseInt(totalSeats),

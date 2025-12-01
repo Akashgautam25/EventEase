@@ -73,7 +73,8 @@ const CreateEventForm = ({ onSubmit, onCancel }) => {
       title: formData.title,
       description: formData.description,
       category: formData.category,
-      date: `${formData.date}T${formData.time}:00`,
+      date: `${formData.date}T00:00:00`,
+      time: `${formData.date}T${formData.time}:00`,
       location: formData.location,
       totalSeats: parseInt(formData.maxSeats),
       price: parseFloat(formData.price) || 0
