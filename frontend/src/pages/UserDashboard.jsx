@@ -74,7 +74,7 @@ const UserDashboard = ({ user, setUser }) => {
         setShowBookingModal(false);
         setSelectedEvent(null);
         setTicketCount(1);
-        fetchDashboardData(); // Refresh data
+        fetchDashboardData(); // Refresh data to sync analytics
       }
     } catch (error) {
       console.error('Error booking event:', error);
@@ -88,8 +88,8 @@ const UserDashboard = ({ user, setUser }) => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userRole');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('selectedRole');
     setUser(null);
     navigate('/login');
   };

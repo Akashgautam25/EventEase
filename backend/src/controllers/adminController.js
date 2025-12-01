@@ -2,31 +2,26 @@ const prisma = require('../prisma/client');
 
 const getStats = async (req, res) => {
   try {
-    const [totalEvents, totalUsers, totalRegistrations] = await Promise.all([
+    const [totalEvents, totalUsers, registrations] = await Promise.all([
       prisma.event.count(),
       prisma.user.count(),
-      prisma.registration.count()
+      prisma.registration.findMany({
+        include: {
+          event: true
+        }
+      })
     ]);
 
-    // Calculate total revenue
-    const events = await prisma.event.findMany({
-      include: {
-        registrations: true
-      }
-    });
-
-    const totalRevenue = events.reduce((sum, event) => {
-      const eventRevenue = event.registrations.reduce((eventSum, reg) => {
-        return eventSum + (event.price * reg.ticketCount);
-      }, 0);
-      return sum + eventRevenue;
+    const ticketsSold = registrations.reduce((sum, reg) => sum + reg.ticketCount, 0);
+    const totalRevenue = registrations.reduce((sum, reg) => {
+      return sum + (reg.event.price * reg.ticketCount);
     }, 0);
 
     const stats = {
       totalEvents,
       totalUsers,
-      ticketsSold: totalRegistrations,
-      totalRevenue: totalRevenue.toFixed(2)
+      ticketsSold,
+      totalRevenue: parseFloat(totalRevenue.toFixed(2))
     };
 
     res.json({ stats });
@@ -66,7 +61,6 @@ const getAllUsers = async (req, res) => {
       }
     });
 
-    // Add isActive field (assuming all users are active by default)
     const usersWithStatus = users.map(user => ({
       ...user,
       isActive: true
@@ -79,13 +73,29 @@ const getAllUsers = async (req, res) => {
   }
 };
 
+const updateUserRole = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { role } = req.body;
+
+    const user = await prisma.user.update({
+      where: { id: parseInt(userId) },
+      data: { role },
+      select: { id: true, name: true, email: true, role: true }
+    });
+
+    res.json({ user, message: 'User role updated successfully' });
+  } catch (error) {
+    console.error('Error updating user role:', error);
+    res.status(500).json({ message: 'Error updating user role' });
+  }
+};
+
 const updateUserStatus = async (req, res) => {
   try {
     const { userId } = req.params;
     const { isActive } = req.body;
 
-    // For now, we'll just return success since we don't have an isActive field in the schema
-    // In a real implementation, you'd add this field to the User model
     res.json({ message: 'User status updated successfully' });
   } catch (error) {
     console.error('Error updating user status:', error);
@@ -97,5 +107,6 @@ module.exports = {
   getStats,
   getAllEvents,
   getAllUsers,
+  updateUserRole,
   updateUserStatus
 };

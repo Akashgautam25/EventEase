@@ -17,6 +17,7 @@ import {
 } from 'react-icons/hi2';
 import axiosClient from '../utils/axiosClient';
 import CreateEventForm from '../components/CreateEventForm';
+import AnalyticsChart from '../components/AnalyticsChart';
 
 const AdminDashboard = ({ user, setUser }) => {
   const [activeSection, setActiveSection] = useState('dashboard');
@@ -35,24 +36,24 @@ const AdminDashboard = ({ user, setUser }) => {
 
   useEffect(() => {
     fetchDashboardData();
+    
+    // Auto-refresh every 30 seconds to sync analytics
+    const interval = setInterval(fetchDashboardData, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      // Get user-specific events
-      const eventsRes = await axiosClient.get('/events/my-events');
-      setEvents(eventsRes.data || []);
+      const [statsRes, eventsRes, usersRes] = await Promise.all([
+        axiosClient.get('/admin/stats'),
+        axiosClient.get('/admin/events'),
+        axiosClient.get('/admin/users')
+      ]);
       
-      // Set stats based on user's events
-      setStats({
-        totalEvents: eventsRes.data?.length || 0,
-        totalUsers: 0,
-        ticketsSold: 0,
-        totalRevenue: 0
-      });
-      
-      setUsers([]);
+      setStats(statsRes.data.stats);
+      setEvents(eventsRes.data.events || []);
+      setUsers(usersRes.data.users || []);
     } catch (error) {
       console.error('Error fetching admin data:', error);
     } finally {
@@ -64,7 +65,7 @@ const AdminDashboard = ({ user, setUser }) => {
     if (window.confirm('Are you sure you want to delete this event?')) {
       try {
         await axiosClient.delete(`/events/${eventId}`);
-        setEvents(events.filter(event => event._id !== eventId));
+        fetchDashboardData(); // Refresh all data
       } catch (error) {
         console.error('Error deleting event:', error);
       }
@@ -73,26 +74,33 @@ const AdminDashboard = ({ user, setUser }) => {
 
   const handleToggleUserStatus = async (userId, currentStatus) => {
     try {
-      await axiosClient.put(`/admin/users/${userId}`, { 
+      await axiosClient.put(`/admin/users/${userId}/status`, { 
         isActive: !currentStatus 
       });
       setUsers(users.map(user => 
-        user._id === userId ? { ...user, isActive: !currentStatus } : user
+        user.id === userId ? { ...user, isActive: !currentStatus } : user
       ));
     } catch (error) {
       console.error('Error updating user status:', error);
     }
   };
 
+  const handleChangeUserRole = async (userId, newRole) => {
+    try {
+      await axiosClient.put(`/admin/users/${userId}/role`, { role: newRole });
+      setUsers(users.map(user => 
+        user.id === userId ? { ...user, role: newRole } : user
+      ));
+    } catch (error) {
+      console.error('Error updating user role:', error);
+    }
+  };
+
   const handleCreateEvent = async (eventData) => {
     try {
-      console.log('Current user:', user);
-      console.log('Token:', localStorage.getItem('token'));
       console.log('Sending event data:', eventData);
       const response = await axiosClient.post('/events', eventData);
-      console.log('Response:', response.data);
       if (response.data) {
-        setEvents([...events, response.data]);
         setShowCreateForm(false);
         alert('Event created successfully!');
         fetchDashboardData();
@@ -100,13 +108,14 @@ const AdminDashboard = ({ user, setUser }) => {
     } catch (error) {
       console.error('Error creating event:', error);
       console.error('Error response:', error.response?.data);
-      alert(`Failed to create event: ${error.response?.data?.message || error.message}. Please logout and login again.`);
+      const errorMessage = error.response?.data?.message || error.message || 'Unknown error';
+      alert(`Failed to create event: ${errorMessage}`);
     }
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userRole');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('selectedRole');
     setUser(null);
     navigate('/login');
   };
@@ -276,34 +285,35 @@ const AdminDashboard = ({ user, setUser }) => {
               </tr>
             ) : (
               users.map((user) => (
-                <tr key={user._id} className="hover:bg-gray-50">
+                <tr key={user.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 font-medium text-gray-900">{user.name}</td>
                   <td className="px-6 py-4 text-gray-600">{user.email}</td>
                   <td className="px-6 py-4">
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      user.role === 'admin' 
-                        ? 'bg-gray-800 text-white' 
-                        : 'bg-gray-200 text-gray-800'
-                    }`}>
-                      {user.role}
-                    </span>
+                    <select
+                      value={user.role}
+                      onChange={(e) => handleChangeUserRole(user.id, e.target.value)}
+                      className="px-2 py-1 text-xs font-medium rounded border border-gray-300 focus:outline-none focus:ring-1 focus:ring-black"
+                    >
+                      <option value="user">User</option>
+                      <option value="admin">Admin</option>
+                    </select>
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                       user.isActive 
-                        ? 'bg-gray-800 text-white' 
-                        : 'bg-gray-200 text-gray-800'
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
                     }`}>
                       {user.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </td>
                   <td className="px-6 py-4">
                     <button
-                      onClick={() => handleToggleUserStatus(user._id, user.isActive)}
+                      onClick={() => handleToggleUserStatus(user.id, user.isActive)}
                       className={`px-3 py-1 text-xs font-medium rounded-lg transition-colors ${
                         user.isActive
-                          ? 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-                          : 'bg-gray-800 text-white hover:bg-gray-700'
+                          ? 'bg-red-100 text-red-800 hover:bg-red-200'
+                          : 'bg-green-100 text-green-800 hover:bg-green-200'
                       }`}
                     >
                       {user.isActive ? 'Deactivate' : 'Activate'}
@@ -321,12 +331,7 @@ const AdminDashboard = ({ user, setUser }) => {
   const renderAnalytics = () => (
     <div className="space-y-6">
       {renderAnalyticsCards()}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Revenue Chart</h3>
-        <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
-          <p className="text-gray-500">Chart component would go here</p>
-        </div>
-      </div>
+      <AnalyticsChart stats={stats} />
     </div>
   );
 

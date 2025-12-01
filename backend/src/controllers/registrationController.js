@@ -49,7 +49,7 @@ const createRegistration = async (req, res) => {
     await prisma.event.update({
       where: { id: parseInt(eventId) },
       data: {
-        availableSeats: event.availableSeats - ticketCount
+        availableSeats: event.availableSeats - parseInt(ticketCount)
       }
     });
 
@@ -127,7 +127,7 @@ const cancelRegistration = async (req, res) => {
     await prisma.event.update({
       where: { id: registration.eventId },
       data: {
-        availableSeats: registration.event.availableSeats + registration.ticketCount
+        availableSeats: registration.event.availableSeats + parseInt(registration.ticketCount)
       }
     });
 
@@ -158,7 +158,7 @@ const deleteRegistration = async (req, res) => {
     await prisma.event.update({
       where: { id: registration.eventId },
       data: {
-        availableSeats: registration.event.availableSeats + registration.ticketCount
+        availableSeats: registration.event.availableSeats + parseInt(registration.ticketCount)
       }
     });
 

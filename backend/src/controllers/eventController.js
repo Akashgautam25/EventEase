@@ -2,26 +2,42 @@ const prisma = require('../prisma/client');
 
 const createEvent = async (req, res) => {
   try {
+    console.log('Creating event with body:', req.body);
+    console.log('User:', req.user);
+    
     const { title, description, date, location, price, totalSeats, category } = req.body;
     
+    if (!title || !description || !date || !location || !category || !totalSeats) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+    
+    const eventData = {
+      title,
+      description,
+      date: new Date(date),
+      location,
+      price: parseFloat(price) || 0,
+      totalSeats: parseInt(totalSeats),
+      availableSeats: parseInt(totalSeats),
+      category,
+      createdBy: req.user.id
+    };
+    
+    console.log('Event data to create:', eventData);
+    
     const event = await prisma.event.create({
-      data: {
-        title,
-        description,
-        date: new Date(date),
-        location,
-        price: parseFloat(price),
-        totalSeats: parseInt(totalSeats),
-        availableSeats: parseInt(totalSeats),
-        category,
-        createdBy: req.user.id
-      }
+      data: eventData
     });
 
+    console.log('Event created successfully:', event);
     res.status(201).json(event);
   } catch (error) {
-    console.error('Error creating event:', error);
-    res.status(500).json({ message: 'Error creating event' });
+    console.error('Detailed error:', error);
+    res.status(500).json({ 
+      message: 'Error creating event', 
+      error: error.message,
+      stack: error.stack 
+    });
   }
 };
 

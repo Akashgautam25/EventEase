@@ -6,6 +6,7 @@ import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
+import EventDetails from './pages/EventDetails';
 import axiosClient from './utils/axiosClient';
 
 function AppContent() {
@@ -62,6 +63,7 @@ function AppContent() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login setUser={setUser} />} />
         <Route path="/signup" element={<Signup setUser={setUser} />} />
+        <Route path="/events/:id" element={<EventDetails user={user} />} />
         <Route 
           path="/dashboard" 
           element={

@@ -11,6 +11,11 @@ const {
 
 const router = express.Router();
 
+// Test route (must be before /:id route)
+router.get('/test', (req, res) => {
+  res.json({ message: 'Events API is working' });
+});
+
 // Public routes
 router.get('/', getAllEvents);
 router.get('/my-events', authenticateToken, getEvents);
