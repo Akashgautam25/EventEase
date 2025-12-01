@@ -25,18 +25,19 @@ function AppContent() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const userRole = localStorage.getItem('userRole');
+        const token = sessionStorage.getItem('token');
+        const selectedRole = sessionStorage.getItem('selectedRole');
         
-        if (token) {
+        if (token && selectedRole) {
           const response = await axiosClient.get('/auth/me');
-          const userData = { ...response.data.user, role: userRole };
+          // Use the role selected during login, not from backend
+          const userData = { ...response.data.user, role: selectedRole };
           setUser(userData);
         }
       } catch (error) {
         console.log('Not authenticated');
-        localStorage.removeItem('token');
-        localStorage.removeItem('userRole');
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('selectedRole');
         setUser(null);
       } finally {
         setLoading(false);

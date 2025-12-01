@@ -7,8 +7,8 @@ const COOKIE_NAME = "token";
 const COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
 const isProduction = process.env.NODE_ENV === "production";
 
-// Generate JWT token
-const generateToken = (userId) => jwt.sign({ userId }, JWT_SECRET, { expiresIn: "7d" });
+// Generate JWT token with role
+const generateToken = (userId, role) => jwt.sign({ userId, role }, JWT_SECRET, { expiresIn: "7d" });
 
 const isLocalhostOrigin = (origin = "") => /^(https?:\/\/)?(localhost|127\.0\.0\.1)/i.test(origin);
 const isHttpsOrigin = (origin = "") => origin.startsWith("https://");
@@ -51,14 +51,15 @@ const signup = async (req, res) => {
       }
     });
     
-    const token = generateToken(user.id);
+    const selectedRole = userType || user.role;
+    const token = generateToken(user.id, selectedRole);
     
     res.json({ 
       user: { 
         id: user.id, 
         name: user.name, 
         email: user.email,
-        role: user.role 
+        role: selectedRole 
       }, 
       token 
     });
@@ -71,7 +72,7 @@ const signup = async (req, res) => {
 // ---------- LOGIN ----------
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, userType } = req.body;
 
     const user = await prisma.user.findUnique({ where: { email } });
 
@@ -82,11 +83,12 @@ const login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
-    const token = generateToken(user.id);
+    const selectedRole = userType || user.role;
+    const token = generateToken(user.id, selectedRole);
     setAuthCookie(res, token, req.requestOrigin);
 
     res.json({
-      user: { id: user.id, name: user.name, email: user.email, provider: user.provider, role: user.role },
+      user: { id: user.id, name: user.name, email: user.email, provider: user.provider, role: selectedRole },
       token,
     });
   } catch (error) {

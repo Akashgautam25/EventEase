@@ -22,14 +22,15 @@ const Login = ({ setUser }) => {
 
     try {
       const response = await axiosClient.post('/auth/login', formData);
-      const userData = { ...response.data.user, role: formData.userType };
       
-      // Store token and user data
+      // Store both token and selected role in sessionStorage for tab isolation
       if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
+        sessionStorage.setItem('token', response.data.token);
       }
-      localStorage.setItem('userRole', formData.userType);
+      sessionStorage.setItem('selectedRole', formData.userType);
       
+      // Use the selected role from form, not backend response
+      const userData = { ...response.data.user, role: formData.userType };
       setUser(userData);
       navigate('/dashboard');
     } catch (error) {

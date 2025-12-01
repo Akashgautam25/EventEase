@@ -15,3 +15,9 @@ Port 5001 is busy, trying 5002
 [32m[nodemon] restarting due to changes...[39m
 [32m[nodemon] starting `node src/index.js`[39m
 🚀 EventEase API running on http://localhost:5001
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/index.js`[39m
+🚀 EventEase API running on http://localhost:5001
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/index.js`[39m
+🚀 EventEase API running on http://localhost:5001

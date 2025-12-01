@@ -28,7 +28,8 @@ const authenticateToken = async (req, res, next) => {
       return res.status(401).json({ message: 'Invalid token.' });
     }
 
-    req.user = user;
+    // Include role from JWT token
+    req.user = { ...user, role: decoded.role };
     next();
   } catch (error) {
     console.error("AuthMiddleware Error:", error);
