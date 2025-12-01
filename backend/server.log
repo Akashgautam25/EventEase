@@ -232,3 +232,6 @@ Require stack:
 
 Node.js v25.2.1
 [31m[nodemon] app crashed - waiting for file changes before starting...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/index.js`[39m
+🚀 EventEase API running on http://localhost:5001
