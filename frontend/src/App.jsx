@@ -17,11 +17,10 @@ function AppContent() {
   const hideNavbar = ['/login', '/signup', '/dashboard'].includes(location.pathname);
 
   useEffect(() => {
-    // Always redirect to landing page when opening the app
-    if (location.pathname === '/dashboard' || location.pathname === '/events') {
+    if (user && (location.pathname === '/login' || location.pathname === '/signup')) {
       navigate('/');
     }
-  }, [location.pathname, navigate]);
+  }, [user, location.pathname, navigate]);
 
   useEffect(() => {
     const checkAuth = async () => {
