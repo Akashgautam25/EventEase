@@ -61,21 +61,21 @@ const Events = ({ user }) => {
 
   const handleBookEvent = async () => {
     try {
-      const response = await axiosClient.post('/registrations', {
-        eventId: selectedEvent.id,
+      const response = await axiosClient.post(`/events/${selectedEvent.id}/register`, {
         ticketCount: ticketCount
       });
       
       if (response.data) {
-        alert('Event booked successfully!');
+        alert('Event registered successfully!');
         setShowBookingModal(false);
         setSelectedEvent(null);
         setTicketCount(1);
         fetchEvents();
       }
     } catch (error) {
-      console.error('Error booking event:', error);
-      alert('Failed to book event. Please try again.');
+      console.error('Error registering for event:', error);
+      const errorMessage = error.response?.data?.message || 'Failed to register for event';
+      alert(errorMessage);
     }
   };
 

@@ -6,22 +6,20 @@ const {
   getAllEvents,
   getEventById,
   updateEvent,
-  deleteEvent
+  deleteEvent,
+  registerForEvent
 } = require('../controllers/eventController');
 
 const router = express.Router();
 
-// Test route (must be before /:id route)
-router.get('/test', (req, res) => {
-  res.json({ message: 'Events API is working' });
-});
-
 // Public routes
 router.get('/', getAllEvents);
-router.get('/my-events', authenticateToken, getEvents);
 router.get('/:id', getEventById);
 
-// Protected routes (authenticated users only)
+// User routes (authenticated)
+router.post('/:id/register', authenticateToken, registerForEvent);
+
+// Admin routes (admin only)
 router.post('/', authenticateToken, createEvent);
 router.put('/:id', authenticateToken, updateEvent);
 router.delete('/:id', authenticateToken, deleteEvent);

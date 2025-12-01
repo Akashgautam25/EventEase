@@ -3,8 +3,10 @@ const prisma = new PrismaClient();
 
 const createEvent = async (req, res) => {
   try {
-    console.log('Creating event with body:', req.body);
-    console.log('User:', req.user);
+    // Admin-only check
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Admin access required' });
+    }
     
     const { title, description, date, location, price, totalSeats, category } = req.body;
     
@@ -12,33 +14,24 @@ const createEvent = async (req, res) => {
       return res.status(400).json({ message: 'Missing required fields' });
     }
     
-    const eventData = {
-      title,
-      description,
-      date: new Date(date),
-      location,
-      price: parseFloat(price) || 0,
-      totalSeats: parseInt(totalSeats),
-      availableSeats: parseInt(totalSeats),
-      category,
-      createdBy: req.user.id
-    };
-    
-    console.log('Event data to create:', eventData);
-    
     const event = await prisma.event.create({
-      data: eventData
+      data: {
+        title,
+        description,
+        date: new Date(date),
+        location,
+        price: parseFloat(price) || 0,
+        totalSeats: parseInt(totalSeats),
+        availableSeats: parseInt(totalSeats),
+        category,
+        createdBy: req.user.id
+      }
     });
 
-    console.log('Event created successfully:', event);
     res.status(201).json(event);
   } catch (error) {
-    console.error('Detailed error:', error);
-    res.status(500).json({ 
-      message: 'Error creating event', 
-      error: error.message,
-      stack: error.stack 
-    });
+    console.error('Error creating event:', error);
+    res.status(500).json({ message: 'Error creating event', error: error.message });
   }
 };
 
@@ -215,11 +208,66 @@ const deleteEvent = async (req, res) => {
   }
 };
 
+const registerForEvent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { ticketCount = 1 } = req.body;
+    const userId = req.user.id;
+
+    // Check if event exists
+    const event = await prisma.event.findUnique({
+      where: { id: parseInt(id) }
+    });
+
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    if (event.availableSeats < ticketCount) {
+      return res.status(400).json({ message: 'Not enough available seats' });
+    }
+
+    // Check if already registered
+    const existingRegistration = await prisma.registration.findFirst({
+      where: { userId, eventId: parseInt(id) }
+    });
+
+    if (existingRegistration) {
+      return res.status(400).json({ message: 'Already registered for this event' });
+    }
+
+    // Create registration and update seats
+    const registration = await prisma.registration.create({
+      data: {
+        userId,
+        eventId: parseInt(id),
+        ticketCount: parseInt(ticketCount)
+      },
+      include: {
+        event: true,
+        user: { select: { id: true, name: true, email: true } }
+      }
+    });
+
+    // Update available seats
+    await prisma.event.update({
+      where: { id: parseInt(id) },
+      data: { availableSeats: event.availableSeats - parseInt(ticketCount) }
+    });
+
+    res.status(201).json({ message: 'Successfully registered for event', registration });
+  } catch (error) {
+    console.error('Error registering for event:', error);
+    res.status(500).json({ message: 'Error registering for event', error: error.message });
+  }
+};
+
 module.exports = {
   createEvent,
   getEvents,
   getAllEvents,
   getEventById,
   updateEvent,
-  deleteEvent
+  deleteEvent,
+  registerForEvent
 };

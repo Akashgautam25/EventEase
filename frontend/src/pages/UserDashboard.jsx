@@ -52,9 +52,10 @@ const UserDashboard = ({ user, setUser }) => {
         axiosClient.get(`/registrations/${user.id}`)
       ]);
       
-      setUpcomingEvents(eventsRes.data || []);
+      const allEvents = Array.isArray(eventsRes.data) ? eventsRes.data : eventsRes.data.events || [];
+      setUpcomingEvents(allEvents);
       setBookingHistory(registrationsRes.data || []);
-      setRecommendedEvents(eventsRes.data?.slice(0, 3) || []);
+      setRecommendedEvents(allEvents.slice(0, 3));
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -64,21 +65,21 @@ const UserDashboard = ({ user, setUser }) => {
 
   const handleBookEvent = async () => {
     try {
-      const response = await axiosClient.post('/registrations', {
-        eventId: selectedEvent.id,
+      const response = await axiosClient.post(`/events/${selectedEvent.id}/register`, {
         ticketCount: ticketCount
       });
       
       if (response.data) {
-        alert('Event booked successfully!');
+        alert('Event registered successfully!');
         setShowBookingModal(false);
         setSelectedEvent(null);
         setTicketCount(1);
-        fetchDashboardData(); // Refresh data to sync analytics
+        fetchDashboardData(); // Refresh data
       }
     } catch (error) {
-      console.error('Error booking event:', error);
-      alert('Failed to book event. Please try again.');
+      console.error('Error registering for event:', error);
+      const errorMessage = error.response?.data?.message || 'Failed to register for event';
+      alert(errorMessage);
     }
   };
 

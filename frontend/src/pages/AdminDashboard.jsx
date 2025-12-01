@@ -29,7 +29,8 @@ const AdminDashboard = ({ user, setUser }) => {
     totalRevenue: 0
   });
   const [events, setEvents] = useState([]);
-  const [users, setUsers] = useState([]);
+  const [registrations, setRegistrations] = useState([]);
+  const [popularEvents, setPopularEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const navigate = useNavigate();
@@ -45,15 +46,17 @@ const AdminDashboard = ({ user, setUser }) => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const [statsRes, eventsRes, usersRes] = await Promise.all([
+      const [statsRes, eventsRes, registrationsRes, popularRes] = await Promise.all([
         axiosClient.get('/admin/stats'),
         axiosClient.get('/admin/events'),
-        axiosClient.get('/admin/users')
+        axiosClient.get('/admin/registrations'),
+        axiosClient.get('/admin/popular-events')
       ]);
       
       setStats(statsRes.data.stats);
       setEvents(eventsRes.data.events || []);
-      setUsers(usersRes.data.users || []);
+      setRegistrations(registrationsRes.data.registrations || []);
+      setPopularEvents(popularRes.data.events || []);
     } catch (error) {
       console.error('Error fetching admin data:', error);
     } finally {
@@ -123,7 +126,7 @@ const AdminDashboard = ({ user, setUser }) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: HiHome },
     { id: 'events', label: 'Event Management', icon: HiCalendarDays },
-    { id: 'users', label: 'User Management', icon: HiUsers },
+    { id: 'registrations', label: 'Registrations', icon: HiTicket },
     { id: 'analytics', label: 'Analytics', icon: HiChartBarSquare }
   ];
 
@@ -255,20 +258,20 @@ const AdminDashboard = ({ user, setUser }) => {
     </div>
   );
 
-  const renderUserManagement = () => (
+  const renderRegistrationsManagement = () => (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
       <div className="p-6 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900">User Management</h3>
+        <h3 className="text-lg font-semibold text-gray-900">Event Registrations</h3>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Event</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tickets</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Revenue</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
@@ -276,49 +279,21 @@ const AdminDashboard = ({ user, setUser }) => {
               <tr>
                 <td colSpan="5" className="px-6 py-8 text-center text-gray-500">Loading...</td>
               </tr>
-            ) : users.length === 0 ? (
+            ) : registrations.length === 0 ? (
               <tr>
                 <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
-                  <HiUsers className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <p>No users found</p>
+                  <HiTicket className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <p>No registrations found</p>
                 </td>
               </tr>
             ) : (
-              users.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 font-medium text-gray-900">{user.name}</td>
-                  <td className="px-6 py-4 text-gray-600">{user.email}</td>
-                  <td className="px-6 py-4">
-                    <select
-                      value={user.role}
-                      onChange={(e) => handleChangeUserRole(user.id, e.target.value)}
-                      className="px-2 py-1 text-xs font-medium rounded border border-gray-300 focus:outline-none focus:ring-1 focus:ring-black"
-                    >
-                      <option value="user">User</option>
-                      <option value="admin">Admin</option>
-                    </select>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      user.isActive 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {user.isActive ? 'Active' : 'Inactive'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <button
-                      onClick={() => handleToggleUserStatus(user.id, user.isActive)}
-                      className={`px-3 py-1 text-xs font-medium rounded-lg transition-colors ${
-                        user.isActive
-                          ? 'bg-red-100 text-red-800 hover:bg-red-200'
-                          : 'bg-green-100 text-green-800 hover:bg-green-200'
-                      }`}
-                    >
-                      {user.isActive ? 'Deactivate' : 'Activate'}
-                    </button>
-                  </td>
+              registrations.slice(0, 10).map((registration) => (
+                <tr key={registration.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 font-medium text-gray-900">{registration.user.name}</td>
+                  <td className="px-6 py-4 text-gray-600">{registration.event.title}</td>
+                  <td className="px-6 py-4 text-gray-600">{new Date(registration.event.date).toLocaleDateString()}</td>
+                  <td className="px-6 py-4 text-gray-600">{registration.ticketCount}</td>
+                  <td className="px-6 py-4 text-gray-600">${(registration.event.price * registration.ticketCount).toFixed(2)}</td>
                 </tr>
               ))
             )}
@@ -354,12 +329,12 @@ const AdminDashboard = ({ user, setUser }) => {
                 </div>
               </div>
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Users</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Popular Events</h3>
                 <div className="space-y-3">
-                  {users.slice(0, 5).map((user) => (
-                    <div key={user.id} className="flex justify-between items-center">
-                      <span className="text-gray-900">{user.name}</span>
-                      <span className="text-sm text-gray-500">{user.email}</span>
+                  {popularEvents.slice(0, 5).map((event) => (
+                    <div key={event.id} className="flex justify-between items-center">
+                      <span className="text-gray-900">{event.title}</span>
+                      <span className="text-sm text-gray-500">{event.registrationCount} registrations</span>
                     </div>
                   ))}
                 </div>
@@ -369,8 +344,8 @@ const AdminDashboard = ({ user, setUser }) => {
         );
       case 'events':
         return renderEventManagement();
-      case 'users':
-        return renderUserManagement();
+      case 'registrations':
+        return renderRegistrationsManagement();
       case 'analytics':
         return renderAnalytics();
       default:

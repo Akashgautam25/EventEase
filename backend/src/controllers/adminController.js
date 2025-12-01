@@ -48,65 +48,54 @@ const getAllEvents = async (req, res) => {
   }
 };
 
-const getAllUsers = async (req, res) => {
+const getAllRegistrations = async (req, res) => {
   try {
-    const users = await prisma.user.findMany({
+    const registrations = await prisma.registration.findMany({
       orderBy: { id: 'desc' },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        provider: true
+      include: {
+        user: {
+          select: { id: true, name: true, email: true }
+        },
+        event: {
+          select: { id: true, title: true, date: true, price: true }
+        }
       }
     });
 
-    const usersWithStatus = users.map(user => ({
-      ...user,
-      isActive: true
-    }));
-
-    res.json({ users: usersWithStatus });
+    res.json({ registrations });
   } catch (error) {
-    console.error('Error fetching users:', error);
-    res.status(500).json({ message: 'Error fetching users' });
+    console.error('Error fetching registrations:', error);
+    res.status(500).json({ message: 'Error fetching registrations' });
   }
 };
 
-const updateUserRole = async (req, res) => {
+const getPopularEvents = async (req, res) => {
   try {
-    const { userId } = req.params;
-    const { role } = req.body;
-
-    const user = await prisma.user.update({
-      where: { id: parseInt(userId) },
-      data: { role },
-      select: { id: true, name: true, email: true, role: true }
+    const events = await prisma.event.findMany({
+      include: {
+        registrations: true
+      }
     });
 
-    res.json({ user, message: 'User role updated successfully' });
-  } catch (error) {
-    console.error('Error updating user role:', error);
-    res.status(500).json({ message: 'Error updating user role' });
-  }
-};
+    const popularEvents = events
+      .map(event => ({
+        ...event,
+        registrationCount: event.registrations.length,
+        revenue: event.registrations.reduce((sum, reg) => sum + (event.price * reg.ticketCount), 0)
+      }))
+      .sort((a, b) => b.registrationCount - a.registrationCount)
+      .slice(0, 10);
 
-const updateUserStatus = async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const { isActive } = req.body;
-
-    res.json({ message: 'User status updated successfully' });
+    res.json({ events: popularEvents });
   } catch (error) {
-    console.error('Error updating user status:', error);
-    res.status(500).json({ message: 'Error updating user status' });
+    console.error('Error fetching popular events:', error);
+    res.status(500).json({ message: 'Error fetching popular events' });
   }
 };
 
 module.exports = {
   getStats,
   getAllEvents,
-  getAllUsers,
-  updateUserRole,
-  updateUserStatus
+  getAllRegistrations,
+  getPopularEvents
 };

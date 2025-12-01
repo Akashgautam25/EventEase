@@ -3,17 +3,15 @@ const { authenticateToken } = require('../middleware/authMiddleware');
 const {
   getStats,
   getAllEvents,
-  getAllUsers,
-  updateUserRole,
-  updateUserStatus
+  getAllRegistrations,
+  getPopularEvents
 } = require('../controllers/adminController');
 
 const router = express.Router();
 
 router.get('/stats', authenticateToken, getStats);
 router.get('/events', authenticateToken, getAllEvents);
-router.get('/users', authenticateToken, getAllUsers);
-router.put('/users/:userId/role', authenticateToken, updateUserRole);
-router.put('/users/:userId/status', authenticateToken, updateUserStatus);
+router.get('/registrations', authenticateToken, getAllRegistrations);
+router.get('/popular-events', authenticateToken, getPopularEvents);
 
 module.exports = router;
