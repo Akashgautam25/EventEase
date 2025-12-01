@@ -19,6 +19,8 @@ model User {
   password      String?
   provider      String
   role          String         @default("USER")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   registrations Registration[]
 }
 
@@ -28,11 +30,14 @@ model Event {
   description   String
   category      String
   date          DateTime
+  time          DateTime
   location      String
   price         Float          @default(0)
   totalSeats    Int
   availableSeats Int
   createdBy     Int
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   registrations Registration[]
 }
 
@@ -41,6 +46,8 @@ model Registration {
   userId      Int
   eventId     Int
   ticketCount Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   user        User     @relation(fields: [userId], references: [id])
   event       Event    @relation(fields: [eventId], references: [id])
   
