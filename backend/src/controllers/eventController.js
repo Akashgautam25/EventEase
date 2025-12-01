@@ -27,17 +27,48 @@ const createEvent = async (req, res) => {
 
 const getEvents = async (req, res) => {
   try {
-    const events = await prisma.event.findMany({
-      where: {
-        createdBy: req.user.id
-      },
-      orderBy: { date: 'asc' },
-      include: {
-        registrations: true
+    const { search, category, sort = 'date', order = 'asc', page = 1, limit = 10 } = req.query;
+    
+    const where = { createdBy: req.user.id };
+    
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } }
+      ];
+    }
+    
+    if (category && category !== 'All') {
+      where.category = category;
+    }
+    
+    const orderBy = {};
+    orderBy[sort] = order;
+    
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    
+    const [events, total] = await Promise.all([
+      prisma.event.findMany({
+        where,
+        orderBy,
+        skip,
+        take: parseInt(limit),
+        include: {
+          registrations: true
+        }
+      }),
+      prisma.event.count({ where })
+    ]);
+    
+    res.json({
+      events,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / parseInt(limit))
       }
     });
-
-    res.json(events);
   } catch (error) {
     console.error('Error fetching events:', error);
     res.status(500).json({ message: 'Error fetching events' });
@@ -46,14 +77,53 @@ const getEvents = async (req, res) => {
 
 const getAllEvents = async (req, res) => {
   try {
-    const events = await prisma.event.findMany({
-      orderBy: { date: 'asc' },
-      include: {
-        registrations: true
+    const { search, category, sort = 'date', order = 'asc', page = 1, limit = 10 } = req.query;
+    
+    const where = {};
+    
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } }
+      ];
+    }
+    
+    if (category && category !== 'All') {
+      where.category = category;
+    }
+    
+    const orderBy = {};
+    orderBy[sort] = order;
+    
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    
+    const [events, total] = await Promise.all([
+      prisma.event.findMany({
+        where,
+        orderBy,
+        skip,
+        take: parseInt(limit),
+        include: {
+          registrations: true
+        }
+      }),
+      prisma.event.count({ where })
+    ]);
+    
+    // For backward compatibility, if no pagination params, return just events
+    if (!req.query.page && !req.query.limit) {
+      return res.json(events);
+    }
+    
+    res.json({
+      events,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / parseInt(limit))
       }
     });
-
-    res.json(events);
   } catch (error) {
     console.error('Error fetching events:', error);
     res.status(500).json({ message: 'Error fetching events' });

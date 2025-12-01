@@ -15,6 +15,10 @@ const Events = ({ user }) => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [sortBy, setSortBy] = useState('date');
+  const [sortOrder, setSortOrder] = useState('asc');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState({});
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [ticketCount, setTicketCount] = useState(1);
@@ -23,13 +27,31 @@ const Events = ({ user }) => {
 
   useEffect(() => {
     fetchEvents();
-  }, []);
+  }, [searchTerm, selectedCategory, sortBy, sortOrder, currentPage]);
 
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const response = await axiosClient.get('/events');
-      setEvents(response.data || []);
+      const params = new URLSearchParams({
+        page: currentPage,
+        limit: 9,
+        sort: sortBy,
+        order: sortOrder
+      });
+      
+      if (searchTerm) params.append('search', searchTerm);
+      if (selectedCategory && selectedCategory !== 'All') params.append('category', selectedCategory);
+      
+      const response = await axiosClient.get(`/events?${params}`);
+      
+      // Handle both response formats (with/without pagination)
+      if (Array.isArray(response.data)) {
+        setEvents(response.data);
+        setPagination({});
+      } else {
+        setEvents(response.data.events || []);
+        setPagination(response.data.pagination || {});
+      }
     } catch (error) {
       console.error('Error fetching events:', error);
     } finally {
@@ -49,7 +71,7 @@ const Events = ({ user }) => {
         setShowBookingModal(false);
         setSelectedEvent(null);
         setTicketCount(1);
-        fetchEvents(); // Refresh events to update available seats
+        fetchEvents();
       }
     } catch (error) {
       console.error('Error booking event:', error);
@@ -62,12 +84,25 @@ const Events = ({ user }) => {
     setShowBookingModal(true);
   };
 
-  const filteredEvents = events.filter(event => {
-    const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         event.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === '' || selectedCategory === 'All' || event.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const handleSearch = (value) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
+  
+  const handleCategoryChange = (value) => {
+    setSelectedCategory(value);
+    setCurrentPage(1);
+  };
+  
+  const handleSortChange = (field) => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('asc');
+    }
+    setCurrentPage(1);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -89,7 +124,7 @@ const Events = ({ user }) => {
               type="text"
               placeholder="Search events..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => handleSearch(e.target.value)}
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
             />
           </div>
@@ -99,7 +134,7 @@ const Events = ({ user }) => {
             <HiFunnel className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <select
               value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
+              onChange={(e) => handleCategoryChange(e.target.value)}
               className="pl-10 pr-8 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black appearance-none bg-white"
             >
               {categories.map(category => (
@@ -118,69 +153,121 @@ const Events = ({ user }) => {
           <div className="text-center py-12">
             <div className="text-gray-500">Loading events...</div>
           </div>
-        ) : filteredEvents.length === 0 ? (
+        ) : events.length === 0 ? (
           <div className="text-center py-12">
             <HiCalendarDays className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No events found</h3>
             <p className="text-gray-500">Try adjusting your search or filter criteria</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredEvents.map((event) => (
-              <div key={event.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
-                {/* Event Image Placeholder */}
-                <div className="h-48 bg-gradient-to-r from-gray-100 to-gray-200 flex items-center justify-center">
-                  <HiCalendarDays className="w-12 h-12 text-gray-400" />
-                </div>
-
-                <div className="p-6">
-                  {/* Category Badge */}
-                  <div className="mb-3">
-                    <span className="px-2 py-1 bg-gray-100 text-gray-800 text-xs font-medium rounded-full">
-                      {event.category}
-                    </span>
-                  </div>
-
-                  {/* Event Title */}
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{event.title}</h3>
-                  
-                  {/* Event Description */}
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">{event.description}</p>
-
-                  {/* Event Details */}
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center text-sm text-gray-500">
-                      <HiCalendarDays className="w-4 h-4 mr-2" />
-                      {new Date(event.date).toLocaleDateString()} at {event.time}
-                    </div>
-                    <div className="flex items-center text-sm text-gray-500">
-                      <HiMapPin className="w-4 h-4 mr-2" />
-                      {event.location}
-                    </div>
-                    <div className="flex items-center text-sm text-gray-500">
-                      <HiUsers className="w-4 h-4 mr-2" />
-                      {event.availableSeats || event.maxSeats} seats available
-                    </div>
-                  </div>
-
-                  {/* Price and Book Button */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <HiCurrencyDollar className="w-5 h-5 text-gray-400" />
-                      <span className="text-lg font-bold text-gray-900">{event.price || 0}</span>
-                    </div>
-                    <button
-                      onClick={() => openBookingModal(event)}
-                      className="flex items-center px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
-                    >
-                      <HiTicket className="w-4 h-4 mr-2" />
-                      Book Now
-                    </button>
-                  </div>
-                </div>
+          <>
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex space-x-4">
+                <button
+                  onClick={() => handleSortChange('date')}
+                  className={`px-4 py-2 rounded-lg ${sortBy === 'date' ? 'bg-black text-white' : 'bg-gray-200'}`}
+                >
+                  Sort by Date {sortBy === 'date' && (sortOrder === 'asc' ? '↑' : '↓')}
+                </button>
+                <button
+                  onClick={() => handleSortChange('price')}
+                  className={`px-4 py-2 rounded-lg ${sortBy === 'price' ? 'bg-black text-white' : 'bg-gray-200'}`}
+                >
+                  Sort by Price {sortBy === 'price' && (sortOrder === 'asc' ? '↑' : '↓')}
+                </button>
               </div>
-            ))}
-          </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {events.map((event) => (
+                <div key={event.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                  {/* Event Image Placeholder */}
+                  <div className="h-48 bg-gradient-to-r from-gray-100 to-gray-200 flex items-center justify-center">
+                    <HiCalendarDays className="w-12 h-12 text-gray-400" />
+                  </div>
+
+                  <div className="p-6">
+                    {/* Category Badge */}
+                    <div className="mb-3">
+                      <span className="px-2 py-1 bg-gray-100 text-gray-800 text-xs font-medium rounded-full">
+                        {event.category}
+                      </span>
+                    </div>
+
+                    {/* Event Title */}
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{event.title}</h3>
+                    
+                    {/* Event Description */}
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">{event.description}</p>
+
+                    {/* Event Details */}
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center text-sm text-gray-500">
+                        <HiCalendarDays className="w-4 h-4 mr-2" />
+                        {new Date(event.date).toLocaleDateString()} at {event.time}
+                      </div>
+                      <div className="flex items-center text-sm text-gray-500">
+                        <HiMapPin className="w-4 h-4 mr-2" />
+                        {event.location}
+                      </div>
+                      <div className="flex items-center text-sm text-gray-500">
+                        <HiUsers className="w-4 h-4 mr-2" />
+                        {event.availableSeats || event.maxSeats} seats available
+                      </div>
+                    </div>
+
+                    {/* Price and Book Button */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <HiCurrencyDollar className="w-5 h-5 text-gray-400" />
+                        <span className="text-lg font-bold text-gray-900">{event.price || 0}</span>
+                      </div>
+                      <button
+                        onClick={() => openBookingModal(event)}
+                        className="flex items-center px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
+                      >
+                        <HiTicket className="w-4 h-4 mr-2" />
+                        Book Now
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            {/* Pagination */}
+            {pagination.pages > 1 && (
+              <div className="flex justify-center mt-8 space-x-2">
+                <button
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 border rounded-lg disabled:opacity-50"
+                >
+                  Previous
+                </button>
+                
+                {[...Array(pagination.pages)].map((_, i) => (
+                  <button
+                    key={i + 1}
+                    onClick={() => setCurrentPage(i + 1)}
+                    className={`px-4 py-2 border rounded-lg ${
+                      currentPage === i + 1 ? 'bg-black text-white' : 'bg-white'
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+                
+                <button
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  disabled={currentPage === pagination.pages}
+                  className="px-4 py-2 border rounded-lg disabled:opacity-50"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
 

@@ -138,9 +138,41 @@ const cancelRegistration = async (req, res) => {
   }
 };
 
+const deleteRegistration = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const registration = await prisma.registration.findUnique({
+      where: { id: parseInt(id) },
+      include: { event: true }
+    });
+
+    if (!registration) {
+      return res.status(404).json({ message: 'Registration not found' });
+    }
+
+    await prisma.registration.delete({
+      where: { id: parseInt(id) }
+    });
+
+    await prisma.event.update({
+      where: { id: registration.eventId },
+      data: {
+        availableSeats: registration.event.availableSeats + registration.ticketCount
+      }
+    });
+
+    res.json({ message: 'Registration deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting registration:', error);
+    res.status(500).json({ message: 'Error deleting registration' });
+  }
+};
+
 module.exports = {
   createRegistration,
   getUserRegistrations,
   getEventRegistrations,
-  cancelRegistration
+  cancelRegistration,
+  deleteRegistration
 };

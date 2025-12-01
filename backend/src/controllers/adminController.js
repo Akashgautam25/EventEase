@@ -41,10 +41,7 @@ const getAllEvents = async (req, res) => {
     const events = await prisma.event.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
-        registrations: true,
-        creator: {
-          select: { id: true, name: true, email: true }
-        }
+        registrations: true
       }
     });
 
