@@ -219,7 +219,7 @@ const CreateEventForm = ({ onSubmit, onCancel }) => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Price ($) *
+              Price (₹) *
             </label>
             <input
               type="number"

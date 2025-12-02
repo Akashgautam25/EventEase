@@ -1,19 +1,56 @@
 import { useState, useEffect } from 'react';
 import { HiChartBarSquare } from 'react-icons/hi2';
+import axiosClient from '../utils/axiosClient';
 
 const AnalyticsChart = ({ stats }) => {
   const [chartData, setChartData] = useState([]);
 
   useEffect(() => {
-    // Generate sample monthly data for demonstration
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-    const data = months.map((month, index) => ({
-      month,
-      revenue: Math.floor(Math.random() * (stats.totalRevenue / 2)) + (index * 100),
-      events: Math.floor(Math.random() * (stats.totalEvents / 2)) + (index * 2)
-    }));
-    setChartData(data);
+    fetchRegistrationData();
   }, [stats]);
+
+  const fetchRegistrationData = async () => {
+    try {
+      const response = await axiosClient.get('/admin/registrations');
+      const registrations = response.data.registrations || [];
+      
+      // Group registrations by month
+      const monthlyData = {};
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      
+      registrations.forEach(reg => {
+        const date = new Date(reg.createdAt);
+        const monthKey = months[date.getMonth()];
+        
+        if (!monthlyData[monthKey]) {
+          monthlyData[monthKey] = { revenue: 0, registrations: 0 };
+        }
+        
+        monthlyData[monthKey].revenue += reg.event.price * reg.ticketCount;
+        monthlyData[monthKey].registrations += 1;
+      });
+      
+      // Convert to chart format (last 6 months)
+      const currentMonth = new Date().getMonth();
+      const data = [];
+      
+      for (let i = 5; i >= 0; i--) {
+        const monthIndex = (currentMonth - i + 12) % 12;
+        const monthName = months[monthIndex];
+        data.push({
+          month: monthName,
+          revenue: monthlyData[monthName]?.revenue || 0,
+          registrations: monthlyData[monthName]?.registrations || 0
+        });
+      }
+      
+      setChartData(data);
+    } catch (error) {
+      console.error('Error fetching registration data:', error);
+      // Fallback to empty data
+      setChartData([]);
+    }
+  };
 
   const maxRevenue = Math.max(...chartData.map(d => d.revenue), 1);
 
@@ -35,12 +72,15 @@ const AnalyticsChart = ({ stats }) => {
                 <div className="flex-1 bg-gray-200 rounded-full h-2">
                   <div 
                     className="bg-black h-2 rounded-full transition-all duration-500"
-                    style={{ width: `${(data.revenue / maxRevenue) * 100}%` }}
+                    style={{ width: `${maxRevenue > 0 ? (data.revenue / maxRevenue) * 100 : 0}%` }}
                   />
                 </div>
-                <div className="text-sm text-gray-600 font-medium w-16 text-right">
-                  ${data.revenue}
+                <div className="text-sm text-gray-600 font-medium w-20 text-right">
+                  ${data.revenue.toFixed(2)}
                 </div>
+              </div>
+              <div className="text-xs text-gray-400 mt-1">
+                {data.registrations} registrations
               </div>
             </div>
           </div>

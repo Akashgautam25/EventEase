@@ -63,18 +63,47 @@ const UserDashboard = ({ user, setUser }) => {
     }
   };
 
-  const handleBookEvent = async () => {
+  const handleRazorpayPayment = () => {
+    if (!window.Razorpay) {
+      alert("Razorpay SDK failed to load. Check your internet or script tag.");
+      return;
+    }
+
+    const options = {
+      key: "rzp_test_RmTdHULpSEGepE",
+      amount: selectedEvent.price * ticketCount * 100,
+      currency: "INR",
+      name: "EventEase",
+      description: "Event Ticket Booking",
+      handler: function (response) {
+        console.log("Payment Success:", response);
+        handleBookingSuccess(response);
+      },
+      prefill: {
+        name: user?.name || "",
+        email: user?.email || "",
+        contact: "9999999999"
+      }
+    };
+
+    const rzp1 = new window.Razorpay(options);
+    rzp1.open();
+  };
+
+  const handleBookingSuccess = async (paymentResponse) => {
     try {
       const response = await axiosClient.post(`/events/${selectedEvent.id}/register`, {
-        ticketCount: ticketCount
+        ticketCount: ticketCount,
+        paymentId: paymentResponse.razorpay_payment_id,
+        orderId: paymentResponse.razorpay_order_id
       });
       
       if (response.data) {
-        alert('Event registered successfully!');
+        alert('🎉 Booking confirmed! Payment successful.');
         setShowBookingModal(false);
         setSelectedEvent(null);
         setTicketCount(1);
-        fetchDashboardData(); // Refresh data
+        fetchDashboardData();
       }
     } catch (error) {
       console.error('Error registering for event:', error);
@@ -91,6 +120,7 @@ const UserDashboard = ({ user, setUser }) => {
   const handleLogout = () => {
     sessionStorage.removeItem('token');
     sessionStorage.removeItem('selectedRole');
+    sessionStorage.removeItem('user');
     setUser(null);
     navigate('/login');
   };
@@ -140,7 +170,10 @@ const UserDashboard = ({ user, setUser }) => {
                     <HiTicket className="w-4 h-4 mr-2" />
                     Book Now
                   </button>
-                  <button className="flex items-center px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                  <button 
+                    onClick={() => navigate(`/events/${event.id}`)}
+                    className="flex items-center px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                  >
                     <HiEye className="w-4 h-4" />
                   </button>
                 </div>
@@ -224,8 +257,11 @@ const UserDashboard = ({ user, setUser }) => {
                   >
                     Book
                   </button>
-                  <button className="px-3 py-1 text-gray-800 hover:bg-gray-100 rounded-lg transition-colors text-sm">
-                    View
+                  <button 
+                    onClick={() => navigate(`/events/${event.id}`)}
+                    className="px-3 py-1 text-gray-800 hover:bg-gray-100 rounded-lg transition-colors text-sm"
+                  >
+                    Details
                   </button>
                 </div>
               </div>
@@ -285,13 +321,22 @@ const UserDashboard = ({ user, setUser }) => {
                             </div>
                           </div>
                         </div>
-                        <button 
-                          onClick={() => openBookingModal(event)}
-                          className="ml-4 flex items-center px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                        >
-                          <HiTicket className="w-4 h-4 mr-2" />
-                          Book Now
-                        </button>
+                        <div className="ml-4 flex space-x-2">
+                          <button 
+                            onClick={() => openBookingModal(event)}
+                            className="flex items-center px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                          >
+                            <HiTicket className="w-4 h-4 mr-2" />
+                            Book Now
+                          </button>
+                          <button 
+                            onClick={() => navigate(`/events/${event.id}`)}
+                            className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                          >
+                            <HiEye className="w-4 h-4 mr-2" />
+                            Details
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -587,10 +632,10 @@ const UserDashboard = ({ user, setUser }) => {
                   </div>
                   <div className="p-6 border-t border-gray-200 flex space-x-3">
                     <button
-                      onClick={handleBookEvent}
+                      onClick={handleRazorpayPayment}
                       className="flex-1 bg-black text-white py-2 px-4 rounded-lg hover:bg-gray-800 transition-colors"
                     >
-                      Confirm Booking
+                      Pay with Razorpay
                     </button>
                     <button
                       onClick={() => {

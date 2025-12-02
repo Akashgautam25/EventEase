@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   HiCalendarDays, 
+  HiClock, 
   HiMapPin, 
   HiCurrencyDollar, 
   HiUsers, 
   HiTicket,
-  HiArrowLeft
+  HiArrowLeft,
+  HiXMark
 } from 'react-icons/hi2';
 import axiosClient from '../utils/axiosClient';
 
@@ -17,6 +19,7 @@ const EventDetails = ({ user }) => {
   const [loading, setLoading] = useState(true);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [ticketCount, setTicketCount] = useState(1);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     fetchEventDetails();
@@ -24,6 +27,7 @@ const EventDetails = ({ user }) => {
 
   const fetchEventDetails = async () => {
     try {
+      setLoading(true);
       const response = await axiosClient.get(`/events/${id}`);
       setEvent(response.data.event);
     } catch (error) {
@@ -33,29 +37,81 @@ const EventDetails = ({ user }) => {
     }
   };
 
-  const handleBookEvent = async () => {
+  const handleRazorpayPayment = () => {
+    if (!window.Razorpay) {
+      alert("Razorpay SDK failed to load. Check your internet or script tag.");
+      return;
+    }
+
+    setIsProcessing(true);
+    
+    const options = {
+      key: "rzp_test_RmTdHULpSEGepE",
+      amount: event.price * ticketCount * 100,
+      currency: "INR",
+      name: "EventEase",
+      description: "Event Ticket Booking",
+      handler: function (response) {
+        console.log("Payment Success:", response);
+        handleBookingSuccess(response);
+      },
+      prefill: {
+        name: user?.name || "",
+        email: user?.email || "",
+        contact: "9999999999"
+      },
+      modal: {
+        ondismiss: function() {
+          setIsProcessing(false);
+        }
+      }
+    };
+
+    const rzp1 = new window.Razorpay(options);
+    rzp1.open();
+  };
+
+  const handleBookingSuccess = async (paymentResponse) => {
     try {
-      const response = await axiosClient.post('/registrations', {
-        eventId: event.id,
-        ticketCount: ticketCount
+      setIsProcessing(true);
+      
+      // Register for the event
+      const response = await axiosClient.post(`/events/${event.id}/register`, {
+        ticketCount: ticketCount,
+        paymentId: paymentResponse.razorpay_payment_id || `pay_${Date.now()}`,
+        orderId: paymentResponse.razorpay_order_id || `order_${Date.now()}`
       });
       
       if (response.data) {
-        alert('Event booked successfully!');
+        alert('🎉 Booking confirmed! Payment successful.');
         setShowBookingModal(false);
         setTicketCount(1);
         fetchEventDetails(); // Refresh event data
       }
     } catch (error) {
-      console.error('Error booking event:', error);
-      alert('Failed to book event. Please try again.');
+      console.error('Error confirming booking:', error);
+      alert('Booking failed. Please try again.');
+    } finally {
+      setIsProcessing(false);
     }
+  };
+
+  const handleBookNow = () => {
+    if (!user) {
+      alert('Please login to book events');
+      navigate('/login');
+      return;
+    }
+    setShowBookingModal(true);
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-500">Loading event details...</div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading event details...</p>
+        </div>
       </div>
     );
   }
@@ -64,13 +120,12 @@ const EventDetails = ({ user }) => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Event Not Found</h2>
-          <p className="text-gray-600 mb-4">The event you're looking for doesn't exist.</p>
-          <button
-            onClick={() => navigate('/')}
-            className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800"
+          <p className="text-gray-600">Event not found</p>
+          <button 
+            onClick={() => navigate(-1)}
+            className="mt-4 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800"
           >
-            Go Back Home
+            Go Back
           </button>
         </div>
       </div>
@@ -79,132 +134,218 @@ const EventDetails = ({ user }) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        {/* Back Button */}
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center text-gray-600 hover:text-black mb-6"
-        >
-          <HiArrowLeft className="w-5 h-5 mr-2" />
-          Back
-        </button>
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <button 
+            onClick={() => navigate(-1)}
+            className="flex items-center text-gray-600 hover:text-black mb-4"
+          >
+            <HiArrowLeft className="w-5 h-5 mr-2" />
+            Back to Events
+          </button>
+        </div>
+      </div>
 
-        {/* Event Header */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-6">
-          <div className="h-64 bg-gradient-to-r from-gray-100 to-gray-200 flex items-center justify-center">
-            <HiCalendarDays className="w-16 h-16 text-gray-400" />
-          </div>
-          
-          <div className="p-6">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <span className="px-3 py-1 bg-gray-100 text-gray-800 text-sm font-medium rounded-full">
-                  {event.category}
-                </span>
-                <h1 className="text-3xl font-bold text-gray-900 mt-2">{event.title}</h1>
-              </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold text-gray-900">${event.price}</div>
-                <div className="text-sm text-gray-500">per ticket</div>
+      {/* Event Details */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              {/* Event Header */}
+              <div className="p-8">
+                <div className="flex items-start justify-between mb-6">
+                  <div>
+                    <span className="inline-block px-3 py-1 bg-black text-white text-sm font-medium rounded-full mb-4">
+                      {event.category}
+                    </span>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-4">{event.title}</h1>
+                  </div>
+                </div>
+
+                {/* Event Info Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                      <HiCalendarDays className="w-5 h-5 text-gray-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Date</p>
+                      <p className="font-medium text-gray-900">
+                        {new Date(event.date).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                      <HiClock className="w-5 h-5 text-gray-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Time</p>
+                      <p className="font-medium text-gray-900">
+                        {new Date(event.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                      <HiMapPin className="w-5 h-5 text-gray-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Location</p>
+                      <p className="font-medium text-gray-900">{event.location}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                      <HiUsers className="w-5 h-5 text-gray-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Available</p>
+                      <p className="font-medium text-gray-900">
+                        {event.availableSeats}/{event.totalSeats} seats
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-4">About This Event</h2>
+                  <p className="text-gray-600 leading-relaxed">{event.description}</p>
+                </div>
               </div>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="flex items-center text-gray-600">
-                <HiCalendarDays className="w-5 h-5 mr-2" />
-                <span>{new Date(event.date).toLocaleDateString()}</span>
-              </div>
-              <div className="flex items-center text-gray-600">
-                <HiMapPin className="w-5 h-5 mr-2" />
-                <span>{event.location}</span>
-              </div>
-              <div className="flex items-center text-gray-600">
-                <HiUsers className="w-5 h-5 mr-2" />
-                <span>{event.availableSeats} seats available</span>
-              </div>
-            </div>
-
-            {user && (
-              <button
-                onClick={() => setShowBookingModal(true)}
-                className="flex items-center bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors"
-              >
-                <HiTicket className="w-5 h-5 mr-2" />
-                Book Now
-              </button>
-            )}
           </div>
-        </div>
 
-        {/* Event Description */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">About This Event</h2>
-          <p className="text-gray-600 leading-relaxed">{event.description}</p>
-        </div>
-
-        {/* Booking Modal */}
-        {showBookingModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-lg max-w-md w-full">
-              <div className="p-6 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900">Book Event</h3>
+          {/* Booking Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-6">
+              <div className="text-center mb-6">
+                <div className="flex items-center justify-center mb-2">
+                  <HiCurrencyDollar className="w-6 h-6 text-gray-600" />
+                  <span className="text-3xl font-bold text-gray-900">${event.price}</span>
+                </div>
+                <p className="text-gray-500">per ticket</p>
               </div>
-              <div className="p-6">
-                <div className="mb-4">
-                  <h4 className="font-medium text-gray-900">{event.title}</h4>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {new Date(event.date).toLocaleDateString()} • ${event.price}
+
+              <div className="space-y-4">
+                <button
+                  onClick={handleBookNow}
+                  disabled={event.availableSeats === 0}
+                  className="w-full flex items-center justify-center px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors font-medium disabled:bg-gray-300 disabled:cursor-not-allowed"
+                >
+                  <HiTicket className="w-5 h-5 mr-2" />
+                  {event.availableSeats === 0 ? 'Sold Out' : 'Book Now'}
+                </button>
+
+                <div className="text-center">
+                  <p className="text-sm text-gray-500">
+                    {event.availableSeats > 0 
+                      ? `${event.availableSeats} tickets remaining`
+                      : 'No tickets available'
+                    }
                   </p>
                 </div>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Number of Tickets
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max={event.availableSeats}
-                    value={ticketCount}
-                    onChange={(e) => setTicketCount(parseInt(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
-                  />
-                </div>
-                <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-                  <div className="flex justify-between text-sm">
-                    <span>Price per ticket:</span>
-                    <span>${event.price}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Quantity:</span>
-                    <span>{ticketCount}</span>
-                  </div>
-                  <div className="flex justify-between font-medium border-t border-gray-200 pt-2 mt-2">
-                    <span>Total:</span>
-                    <span>${(event.price * ticketCount).toFixed(2)}</span>
-                  </div>
-                </div>
               </div>
-              <div className="p-6 border-t border-gray-200 flex space-x-3">
-                <button
-                  onClick={handleBookEvent}
-                  className="flex-1 bg-black text-white py-2 px-4 rounded-lg hover:bg-gray-800 transition-colors"
-                >
-                  Confirm Booking
-                </button>
-                <button
-                  onClick={() => {
-                    setShowBookingModal(false);
-                    setTicketCount(1);
-                  }}
-                  className="flex-1 bg-white border border-black text-black py-2 px-4 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  Cancel
-                </button>
+
+              {/* Event Stats */}
+              <div className="mt-8 pt-6 border-t border-gray-200">
+                <h3 className="font-medium text-gray-900 mb-4">Event Statistics</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Total Seats</span>
+                    <span className="text-gray-900">{event.totalSeats}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Booked</span>
+                    <span className="text-gray-900">{event.totalSeats - event.availableSeats}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Available</span>
+                    <span className="text-gray-900">{event.availableSeats}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        )}
+        </div>
       </div>
+
+      {/* Booking Modal */}
+      {showBookingModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-md w-full">
+            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-gray-900">Book Tickets</h3>
+              <button 
+                onClick={() => setShowBookingModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <HiXMark className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              <div className="mb-6">
+                <h4 className="font-medium text-gray-900 mb-2">{event.title}</h4>
+                <p className="text-sm text-gray-500">
+                  {new Date(event.date).toLocaleDateString()} • {event.location}
+                </p>
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Number of Tickets
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max={Math.min(event.availableSeats, 10)}
+                  value={ticketCount}
+                  onChange={(e) => setTicketCount(parseInt(e.target.value) || 1)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+                />
+              </div>
+
+              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                <div className="flex justify-between text-sm mb-2">
+                  <span>Price per ticket:</span>
+                  <span>${event.price}</span>
+                </div>
+                <div className="flex justify-between text-sm mb-2">
+                  <span>Quantity:</span>
+                  <span>{ticketCount}</span>
+                </div>
+                <div className="flex justify-between font-medium text-lg border-t border-gray-200 pt-2">
+                  <span>Total Amount:</span>
+                  <span>${(event.price * ticketCount).toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-200 flex space-x-3">
+              <button
+                onClick={handleRazorpayPayment}
+                disabled={isProcessing}
+                className="flex-1 bg-black text-white py-3 px-4 rounded-lg hover:bg-gray-800 transition-colors font-medium disabled:bg-gray-400"
+              >
+                {isProcessing ? 'Processing...' : 'Pay with Razorpay'}
+              </button>
+              <button
+                onClick={() => setShowBookingModal(false)}
+                className="flex-1 bg-white border border-black text-black py-3 px-4 rounded-lg hover:bg-gray-100 transition-colors font-medium"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

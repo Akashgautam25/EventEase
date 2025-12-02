@@ -15,7 +15,7 @@ function AppContent() {
   const location = useLocation();
   const navigate = useNavigate();
   
-  const hideNavbar = ['/login', '/signup', '/dashboard'].includes(location.pathname);
+  const hideNavbar = ['/login', '/signup', '/dashboard'].includes(location.pathname) || location.pathname.startsWith('/events/');
 
   useEffect(() => {
     if (user && (location.pathname === '/login' || location.pathname === '/signup')) {
@@ -28,17 +28,26 @@ function AppContent() {
       try {
         const token = sessionStorage.getItem('token');
         const selectedRole = sessionStorage.getItem('selectedRole');
+        const storedUser = sessionStorage.getItem('user');
         
         if (token && selectedRole) {
-          const response = await axiosClient.get('/auth/me');
-          // Use the role selected during login, not from backend
-          const userData = { ...response.data.user, role: selectedRole };
-          setUser(userData);
+          // First try to use stored user data
+          if (storedUser) {
+            const userData = JSON.parse(storedUser);
+            setUser(userData);
+          } else {
+            // Fallback to API call if no stored user data
+            const response = await axiosClient.get('/auth/me');
+            const userData = { ...response.data.user, role: selectedRole };
+            setUser(userData);
+            sessionStorage.setItem('user', JSON.stringify(userData));
+          }
         }
       } catch (error) {
         console.log('Not authenticated');
         sessionStorage.removeItem('token');
         sessionStorage.removeItem('selectedRole');
+        sessionStorage.removeItem('user');
         setUser(null);
       } finally {
         setLoading(false);

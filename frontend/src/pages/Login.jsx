@@ -23,7 +23,7 @@ const Login = ({ setUser }) => {
     try {
       const response = await axiosClient.post('/auth/login', formData);
       
-      // Store both token and selected role in sessionStorage for tab isolation
+      // Store token, role, and complete user data in sessionStorage
       if (response.data.token) {
         sessionStorage.setItem('token', response.data.token);
       }
@@ -31,6 +31,7 @@ const Login = ({ setUser }) => {
       
       // Use the selected role from form, not backend response
       const userData = { ...response.data.user, role: formData.userType };
+      sessionStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
       navigate('/dashboard');
     } catch (error) {
@@ -41,7 +42,7 @@ const Login = ({ setUser }) => {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = 'https://eventease-03az.onrender.com/api/auth/google';
+    setError('Google login is currently unavailable');
   };
 
   return (

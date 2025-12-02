@@ -48,7 +48,7 @@ const Signup = ({ setUser }) => {
   };
 
   const handleGoogleSignup = () => {
-    window.location.href = 'https://eventease-03az.onrender.com/api/auth/google';
+    setError('Google signup is currently unavailable');
   };
 
   return (

@@ -212,7 +212,7 @@ const deleteEvent = async (req, res) => {
 const registerForEvent = async (req, res) => {
   try {
     const { id } = req.params;
-    const { ticketCount = 1 } = req.body;
+    const { ticketCount = 1, paymentId, orderId } = req.body;
     const userId = req.user.id;
 
     // Check if event exists
@@ -242,7 +242,10 @@ const registerForEvent = async (req, res) => {
       data: {
         userId,
         eventId: parseInt(id),
-        ticketCount: parseInt(ticketCount)
+        ticketCount: parseInt(ticketCount),
+        paymentId: paymentId || null,
+        orderId: orderId || null,
+        paymentStatus: paymentId ? 'completed' : 'pending'
       },
       include: {
         event: true,

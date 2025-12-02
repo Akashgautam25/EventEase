@@ -2,15 +2,25 @@ const prisma = require('../lib/prisma');
 
 const getStats = async (req, res) => {
   try {
-    const [totalEvents, totalUsers, registrations] = await Promise.all([
-      prisma.event.count(),
-      prisma.user.count(),
+    const adminId = req.user.id;
+    
+    const [totalEvents, registrations] = await Promise.all([
+      prisma.event.count({ where: { createdBy: adminId } }),
       prisma.registration.findMany({
         include: {
-          event: true
+          event: true,
+          user: true
+        },
+        where: {
+          event: { createdBy: adminId },
+          user: { role: { not: 'admin' } } // Exclude admin users from analytics
         }
       })
     ]);
+
+    // Count unique users who registered for admin's events (excluding admins)
+    const uniqueUserIds = new Set(registrations.map(reg => reg.userId));
+    const totalUsers = uniqueUserIds.size;
 
     const ticketsSold = registrations.reduce((sum, reg) => sum + reg.ticketCount, 0);
     const totalRevenue = registrations.reduce((sum, reg) => {
@@ -33,10 +43,17 @@ const getStats = async (req, res) => {
 
 const getAllEvents = async (req, res) => {
   try {
+    const adminId = req.user.id;
+    
     const events = await prisma.event.findMany({
+      where: { createdBy: adminId },
       orderBy: { id: 'desc' },
       include: {
-        registrations: true
+        registrations: {
+          where: {
+            user: { role: { not: 'admin' } } // Exclude admin registrations
+          }
+        }
       }
     });
 
@@ -49,15 +66,21 @@ const getAllEvents = async (req, res) => {
 
 const getAllRegistrations = async (req, res) => {
   try {
+    const adminId = req.user.id;
+    
     const registrations = await prisma.registration.findMany({
       orderBy: { id: 'desc' },
       include: {
         user: {
-          select: { id: true, name: true, email: true }
+          select: { id: true, name: true, email: true, role: true }
         },
         event: {
           select: { id: true, title: true, date: true, price: true }
         }
+      },
+      where: {
+        event: { createdBy: adminId },
+        user: { role: { not: 'admin' } } // Exclude admin registrations
       }
     });
 
@@ -70,9 +93,19 @@ const getAllRegistrations = async (req, res) => {
 
 const getPopularEvents = async (req, res) => {
   try {
+    const adminId = req.user.id;
+    
     const events = await prisma.event.findMany({
+      where: { createdBy: adminId },
       include: {
-        registrations: true
+        registrations: {
+          where: {
+            user: { role: { not: 'admin' } } // Exclude admin registrations
+          },
+          include: {
+            user: true
+          }
+        }
       }
     });
 

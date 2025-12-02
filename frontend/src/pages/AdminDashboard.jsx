@@ -119,6 +119,7 @@ const AdminDashboard = ({ user, setUser }) => {
   const handleLogout = () => {
     sessionStorage.removeItem('token');
     sessionStorage.removeItem('selectedRole');
+    sessionStorage.removeItem('user');
     setUser(null);
     navigate('/login');
   };
@@ -147,8 +148,8 @@ const AdminDashboard = ({ user, setUser }) => {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-gray-600">Total Users</p>
-            <p className="text-3xl font-bold text-gray-900">{stats.totalUsers}</p>
+            <p className="text-sm font-medium text-gray-600">Registered Users</p>
+            <p className="text-3xl font-bold text-gray-900">{registrations.length}</p>
           </div>
           <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
             <HiUsers className="w-6 h-6 text-gray-800" />
@@ -172,7 +173,7 @@ const AdminDashboard = ({ user, setUser }) => {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-            <p className="text-3xl font-bold text-gray-900">${stats.totalRevenue}</p>
+            <p className="text-3xl font-bold text-gray-900">₹{stats.totalRevenue}</p>
           </div>
           <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
             <HiCurrencyDollar className="w-6 h-6 text-gray-800" />
@@ -229,7 +230,7 @@ const AdminDashboard = ({ user, setUser }) => {
                     <tr key={event.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 font-medium text-gray-900">{event.title}</td>
                       <td className="px-6 py-4 text-gray-600">{new Date(event.date).toLocaleDateString()}</td>
-                      <td className="px-6 py-4 text-gray-600">${event.price}</td>
+                      <td className="px-6 py-4 text-gray-600">₹{event.price}</td>
                       <td className="px-6 py-4 text-gray-600">{event.availableSeats}/{event.totalSeats}</td>
                       <td className="px-6 py-4">
                         <div className="flex space-x-2">
