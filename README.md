@@ -57,8 +57,60 @@ EventEase is a full-stack platform for managing college events. Students can bro
 - PostgreSQL (Neon)
 - Google OAuth credentials (optional for Google login)
 
+🛠 Installation
+Backend Setup
+cd backend
+npm install
+
+cp .env.example .env
+# Update .env with:
+# DATABASE_URL=
+# JWT_SECRET=
+# GOOGLE_CLIENT_ID=
+# GOOGLE_CLIENT_SECRET=
+# FRONTEND_URL=
+# PORT=
+
+npx prisma generate
+npx prisma db push
+
+npm run dev
+
+
+Backend → http://localhost:5000
+
+Frontend Setup
+cd frontend
+npm install
+npm run dev
+
+
+Frontend → http://localhost:5173
+
+📁 Project Structure
+EventEase/
+├── backend/
+│   ├── src/
+│   │   ├── controllers/       # Business logic
+│   │   ├── middleware/        # Auth & validation
+│   │   ├── prisma/            # Prisma client
+│   │   ├── routes/            # API routes
+│   │   ├── app.js
+│   │   └── index.js
+│   ├── prisma/
+│   │   └── schema.prisma
+│   └── package.json
+└── frontend/
+    ├── src/
+    │   ├── components/        # Navbar, ProtectedRoute, etc.
+    │   ├── pages/             # Dashboard, Login, Signup, Landing
+    │   ├── utils/             # Axios client, helpers
+    │   ├── App.jsx
+    │   └── main.jsx
+    └── package.json
+
 🔐 User Roles
-👤 USER
+USER
 
 View all events
 
@@ -66,58 +118,74 @@ Register for events
 
 Access personal dashboard
 
-Manage personal profile
+Search & filter events
 
-🛡️ ADMIN
+ADMIN
 
-Create & manage events
+Create, edit, delete events
 
-Modify or delete events
+Manage event registrations
 
-View and manage registrations
+Access admin dashboard
 
-Access admin dashboard tools
+Monitor overall system activity
 
 🚀 Deployment
-Frontend → Vercel
+Frontend (Vercel)
+
+Connect GitHub repository
 
 Build command: npm run build
 
-Output directory: dist
+Output folder: dist
 
-Backend → Render
+Backend (Render)
 
-Auto-deploy from GitHub
+Connect GitHub repository
+
+Build command: npm install
 
 Start command: npm start
 
-Add environment variables
+Add all required environment variables
 
 📱 Future Enhancements
 
-Event reminders & notifications
+Event reminders & push notifications
 
 QR-based event check-in system
 
-Certificate generation
+Certificate generation for participants
 
-Analytics dashboard for admins
+Advanced analytics for event performance
 
-Multi-language support
+Multi-language UI support
 
-Mobile app version
+Mobile app development
+
+Admin broadcast announcements
 
 🤝 Contributing
 
-Fork the repo
+Fork the repository
 
-Create a branch
+Create a feature branch:
 
-Commit your changes
+git checkout -b feature/NewFeature
 
-Push and create a Pull Request
+
+Commit your changes:
+
+git commit -m "Add NewFeature"
+
+
+Push the branch:
+
+git push origin feature/NewFeature
+
+
+Create a Pull Request
 
 📄 License
 
 This project is licensed under the MIT License.
-
