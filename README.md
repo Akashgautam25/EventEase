@@ -57,55 +57,67 @@ EventEase is a full-stack platform for managing college events. Students can bro
 - PostgreSQL (Neon)
 - Google OAuth credentials (optional for Google login)
 
-### Installation
+🔐 User Roles
+👤 USER
 
-#### Backend
-```bash
-cd backend
-npm install
-cp .env.example .env
-# Update .env with DATABASE_URL, JWT_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, FRONTEND_URL, PORT
-npx prisma generate
-npx prisma db push
-npm run dev
-Backend → http://localhost:5000
+View all events
 
-Frontend
-bash
-Copy code
-cd frontend
-npm install
-npm run dev
-Frontend → http://localhost:5173
+Register for events
 
-📁 Project Structure
-graphql
-Copy code
-EventEase/
-├── backend/
-│   ├── src/
-│   │   ├── controllers/       # Business logic
-│   │   ├── middleware/        # Auth & validation
-│   │   ├── prisma/             # Prisma client
-│   │   ├── routes/             # API routes
-│   │   ├── app.js
-│   │   └── index.js
-│   ├── prisma/
-│   │   └── schema.prisma
-│   └── package.json
-└── frontend/
-    ├── src/
-    │   ├── components/        # Navbar, ProtectedRoute, etc.
-    │   ├── pages/             # Dashboard, Login, Signup, Landing
-    │   ├── utils/             # Axios client, helpers
-    │   ├── App.jsx
-    │   └── main.jsx
-    └── package.json
+Access personal dashboard
 
-📝 Contributing
+Manage personal profile
 
-Fork the repository
-Create a feature branch (git checkout -b feature/AmazingFeature)
-Commit your changes (git commit -m 'Add AmazingFeature')
-Push the branch (git push origin feature/AmazingFeature)
-Open a Pull Request
+🛡️ ADMIN
+
+Create & manage events
+
+Modify or delete events
+
+View and manage registrations
+
+Access admin dashboard tools
+
+🚀 Deployment
+Frontend → Vercel
+
+Build command: npm run build
+
+Output directory: dist
+
+Backend → Render
+
+Auto-deploy from GitHub
+
+Start command: npm start
+
+Add environment variables
+
+📱 Future Enhancements
+
+Event reminders & notifications
+
+QR-based event check-in system
+
+Certificate generation
+
+Analytics dashboard for admins
+
+Multi-language support
+
+Mobile app version
+
+🤝 Contributing
+
+Fork the repo
+
+Create a branch
+
+Commit your changes
+
+Push and create a Pull Request
+
+📄 License
+
+This project is licensed under the MIT License.
+
