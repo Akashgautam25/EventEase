@@ -21,6 +21,9 @@ function AppContent() {
     if (user && (location.pathname === '/login' || location.pathname === '/signup')) {
       navigate('/');
     }
+    if (user && location.pathname === '/') {
+      navigate('/dashboard');
+    }
   }, [user, location.pathname, navigate]);
 
   useEffect(() => {
