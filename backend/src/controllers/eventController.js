@@ -3,8 +3,14 @@ const prisma = require('../lib/prisma');
 const createEvent = async (req, res) => {
   try {
     // Admin-only check
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Admin access required' });
+    console.log('User role:', req.user.role, 'Type:', typeof req.user.role);
+    console.log('Full user object:', req.user);
+    if (req.user.role !== 'admin' && req.user.role !== 'ADMIN') {
+      return res.status(403).json({ 
+        message: 'Admin access required', 
+        receivedRole: req.user.role,
+        expectedRole: 'admin' 
+      });
     }
     
     const { title, description, date, time, location, price, totalSeats, category } = req.body;

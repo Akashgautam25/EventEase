@@ -7,16 +7,16 @@ import {
   HiXMark
 } from 'react-icons/hi2';
 
-const CreateEventForm = ({ onSubmit, onCancel }) => {
+const CreateEventForm = ({ onSubmit, onCancel, event = null, isEditing = false }) => {
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    category: '',
-    date: '',
-    time: '',
-    location: '',
-    maxSeats: '',
-    price: '',
+    title: event?.title || '',
+    description: event?.description || '',
+    category: event?.category || '',
+    date: event?.date ? new Date(event.date).toISOString().split('T')[0] : '',
+    time: event?.time ? new Date(event.time).toTimeString().slice(0, 5) : '',
+    location: event?.location || '',
+    maxSeats: event?.totalSeats || '',
+    price: event?.price || '',
     banner: null
   });
 
@@ -85,8 +85,12 @@ const CreateEventForm = ({ onSubmit, onCancel }) => {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200">
       <div className="p-6 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900">Create New Event</h3>
-        <p className="text-sm text-gray-500 mt-1">Fill in the details to create a new event</p>
+        <h3 className="text-lg font-semibold text-gray-900">
+          {isEditing ? 'Edit Event' : 'Create New Event'}
+        </h3>
+        <p className="text-sm text-gray-500 mt-1">
+          {isEditing ? 'Update the event details' : 'Fill in the details to create a new event'}
+        </p>
       </div>
 
       <form onSubmit={handleSubmit} className="p-6 space-y-6">
@@ -287,7 +291,7 @@ const CreateEventForm = ({ onSubmit, onCancel }) => {
             type="submit"
             className="flex-1 bg-black text-white py-3 px-6 rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors font-medium"
           >
-            Create Event
+            {isEditing ? 'Update Event' : 'Create Event'}
           </button>
           <button
             type="button"
