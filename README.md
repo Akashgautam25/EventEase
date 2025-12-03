@@ -155,55 +155,11 @@ EventEase/
     │   ├── App.jsx
     │   └── main.jsx
     └── package.json
-```
 
----
+📝 Contributing
 
-## 🚀 Deployment
-
-### Frontend (Vercel)
-- Connect GitHub repo
-- Build command: `npm run build`
-- Output folder: `dist`
-
-### Backend (Render)
-- Connect GitHub repo
-- Build command: `npm install`
-- Start command: `npm start`
-- Add required environment variables
-
----
-
-## 📱 Future Enhancements
-
-- Push notifications
-- QR-based event check-in
-- Certificate generation
-- Advanced event analytics
-- Multi-language UI
-- Mobile app version
-- Admin broadcast announcements
-
----
-
-## 🤝 Contributing
-
-```bash
-# 1. Fork the repository
-# 2. Create a feature branch
-git checkout -b feature/NewFeature
-
-# 3. Commit changes
-git commit -m "Add NewFeature"
-
-# 4. Push branch
-git push origin feature/NewFeature
-```
-
-Then open a Pull Request 🎉
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License.
+Fork the repository
+Create a feature branch (git checkout -b feature/AmazingFeature)
+Commit your changes (git commit -m 'Add AmazingFeature')
+Push the branch (git push origin feature/AmazingFeature)
+Open a Pull Request
